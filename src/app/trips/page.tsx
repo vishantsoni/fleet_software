@@ -30,7 +30,10 @@ export default function TripsPage() {
 
 async function TripsContent() {
   const result = await listTrips({ limit: 50 })
-  const trips = result.trips || []
+  const trips = (result.trips || []).map((trip: any) => ({
+    ...trip,
+    customer: trip.customer ? trip.customer : undefined,
+  }))
 
   return <TripTable trips={trips} />
 }

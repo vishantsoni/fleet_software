@@ -75,8 +75,8 @@ export function PWAInstallButton() {
           <div className="space-y-3 py-2">
             <p className="text-sm">1. Open this website in Safari (not Chrome)</p>
             <p className="text-sm">2. Tap the Share button (square with arrow up)</p>
-            <p className="text-sm">3. Select "Add to Home Screen"</p>
-            <p className="text-sm">4. Tap "Add" to install</p>
+            <p className="text-sm">3. Select &quot;Add to Home Screen&quot;</p>
+            <p className="text-sm">4. Tap &quot;Add&quot; to install</p>
           </div>
           <DialogFooter>
             <Button

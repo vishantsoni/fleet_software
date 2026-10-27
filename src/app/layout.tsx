@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   appleWebApp: {
     capable: true,
-    statusBar: 'black-translucent',
+    statusBarStyle: 'black-translucent',
     title: 'FleetMS',
   },
   applicationName: 'FleetMS',

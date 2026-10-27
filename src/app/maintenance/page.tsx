@@ -31,19 +31,25 @@ async function MaintenanceJobsList({ searchParams }: MaintenancePageProps) {
   const result = await listMaintenanceJobsAction({
     page,
     limit: 10,
-    search: params.search || '',
-    vehicleId: params.vehicleId || '',
-    jobType: params.jobType || '',
-    dateFrom: params.dateFrom || '',
-    dateTo: params.dateTo || '',
+    vehicleId: params.vehicleId || undefined,
+    jobType: params.jobType || undefined,
+    startDate: params.dateFrom || undefined,
+    endDate: params.dateTo || undefined,
   })
 
   if (!result.success) {
     return <div className="text-red-600">{result.error}</div>
   }
 
+  const jobs = (result.jobs || []).map((job: any) => ({
+    ...job,
+    partsCost: Number(job.partsCost),
+    labourCost: Number(job.labourCost),
+    totalCost: Number(job.totalCost),
+  }))
+
   return (
-    <MaintenanceTable data={result.jobs} total={result.total} page={result.page} />
+    <MaintenanceTable data={jobs} total={result.total || 0} page={result.page || page} />
   )
 }
 
@@ -75,7 +81,9 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
         </div>
       </div>
 
-      <MaintenanceFilterForm vehicles={vehicles} />
+      <Suspense fallback={null}>
+        <MaintenanceFilterForm vehicles={vehicles} />
+      </Suspense>
 
       <Suspense fallback={<div>Loading...</div>}>
         <MaintenanceJobsList searchParams={searchParams} />

@@ -113,10 +113,10 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           listDriversAction(1, 100, undefined, 'ACTIVE'),
         ])
         if (vehiclesRes.success) {
-          setVehicles(vehiclesRes.vehicles || [])
+          setVehicles((vehiclesRes as any).vehicles || (vehiclesRes as any).data?.vehicles || [])
         }
         if (driversRes.success) {
-          setDrivers(driversRes.drivers || [])
+          setDrivers((driversRes as any).drivers || (driversRes as any).data?.drivers || [])
         }
       } catch (err) {
         console.error('Failed to fetch options:', err)

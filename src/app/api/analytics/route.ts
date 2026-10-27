@@ -13,18 +13,18 @@ export async function POST(request: NextRequest) {
 
     switch (type) {
       case 'fleet-pnl': {
-        const result = await getFleetPnL({ startDate, endDate })
+        const result = await getFleetPnL(new Date(startDate), new Date(endDate))
         return NextResponse.json(result)
       }
       case 'vehicle-pnl': {
         if (!vehicleId) {
           return NextResponse.json({ error: 'vehicleId required' }, { status: 400 })
         }
-        const result = await getVehiclePnL(vehicleId, { startDate, endDate })
+        const result = await getVehiclePnL(vehicleId, startDate ? new Date(startDate) : new Date(0), endDate ? new Date(endDate) : new Date())
         return NextResponse.json(result)
       }
       case 'revenue-by-period': {
-        const result = await getRevenueByPeriod({ period, startDate, endDate })
+        const result = await getRevenueByPeriod(startDate ? new Date(startDate) : new Date(0), endDate ? new Date(endDate) : new Date())
         return NextResponse.json(result)
       }
       case 'kpis':

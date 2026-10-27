@@ -30,7 +30,15 @@ export default function TyresPage() {
 
 async function TyresContent() {
   const result = await listTyres({ limit: 50 })
-  const tyres = result.tyres || []
+  const tyres = (result.tyres || []).map((tyre: any) => ({
+    ...tyre,
+    purchaseCost: Number(tyre.purchaseCost),
+    costPerKm: tyre.costPerKm == null ? undefined : Number(tyre.costPerKm),
+    removalOdometer: tyre.removalOdometer ?? undefined,
+    vehicle: tyre.vehicle
+      ? { id: tyre.vehicle.id, vehicleNo: tyre.vehicle.vehicleNo }
+      : undefined,
+  }))
 
   return <TyreTable tyres={tyres} />
 }

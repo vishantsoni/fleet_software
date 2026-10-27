@@ -42,8 +42,8 @@ export function WorkshopCreateDialog({ onSuccess }: WorkshopFormProps) {
         toast({ title: 'Workshop created successfully' })
         onSuccess?.()
       } else {
-        setErrors({ form: result.error })
-        toast({ title: 'Error', description: result.error, variant: 'destructive' })
+        setErrors({ form: result.error || 'An error occurred' })
+        toast({ title: 'Error', description: result.error || 'An error occurred', variant: 'destructive' })
       }
     } catch {
       setErrors({ form: 'Failed to create workshop' })

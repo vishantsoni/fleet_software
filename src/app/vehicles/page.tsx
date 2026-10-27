@@ -40,7 +40,9 @@ export default async function VehiclesPage({ searchParams }: VehiclesPageProps) 
         </Button>
       </div>
 
-      <VehicleSearchForm />
+      <Suspense fallback={null}>
+        <VehicleSearchForm />
+      </Suspense>
 
       <Suspense fallback={<div>Loading...</div>}>
         <VehiclesList searchParams={searchParams} />

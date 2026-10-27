@@ -22,7 +22,11 @@ export const createVehicleSchema = z.object({
   status: z.string().default('ACTIVE'),
 })
 
-export type CreateVehicleInput = z.infer<typeof createVehicleSchema>
+export const updateVehicleSchema = createVehicleSchema.extend({
+  id: z.string().min(1, 'ID is required'),
+})
+
+export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>
 
 export type Vehicle = {
   id: string

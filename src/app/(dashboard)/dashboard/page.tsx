@@ -40,7 +40,10 @@ async function DashboardKPIs() {
 
 async function RecentTripsWrapper() {
   const result = await listTrips({ limit: 5 })
-  const trips = result.trips || []
+  const trips = (result.trips || []).map((trip: any) => ({
+    ...trip,
+    customerId: trip.customerId ?? undefined,
+  }))
   return <RecentTrips trips={trips} />
 }
 
