@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OwnerType {
+  OWNED
+  MARKET
+}
+
+enum JobType {
+  PREVENTATIVE
+  BREAKDOWN
+}
+
+enum FuelType {
+  DIESEL
+  PETROL
+  CNG
+  ELECTRIC
+}
+
+enum DocumentType {
+  INSURANCE
+  FITNESS
+  ROAD_TAX
+  NATIONAL_PERMIT
+  POLLUTION_CERTIFICATE
+  DRIVER_LICENSE
+  VEHICLE_REGISTRATION
+}
+
+enum AlertStatus {
+  GREEN
+  AMBER
+  RED
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  DRIVER
+  ACCOUNTANT
+  OPERATIONS
+}
+
+enum TripType {
+  POINT_TO_POINT
+  PACKAGE
+}
+
+enum TripStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(OPERATIONS)
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  createdTrips  Trip[]     @relation("TripCreatedBy")
+  fuelEntries  FuelEntry[] @relation("FuelEntryCreatedBy")
+  maintenanceJobs MaintenanceJob[] @relation("MaintenanceJobCreatedBy")
+
+  @@map("users")
+}
+
+model Customer {
+  id            String    @id @default(cuid())
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  gstNumber     String?
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  trips         Trip[]
+
+  @@map("customers")
+}
+
+model Workshop {
+  id            String    @id @default(cuid())
+  name          String
+  address       String?
+  phone         String?
+  contactPerson String?
+  email         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  maintenanceJobs MaintenanceJob[]
+
+  @@map("workshops")
+}
+
+model Vehicle {
+  id                 String    @id @default(cuid())
+  vehicleNo          String    @unique
+  registrationDate   DateTime
+  makeModel           String
+  year                Int
+  capacityTonnage     Decimal   @db.Decimal(10, 2)
+  ownerType           OwnerType @default(OWNED)
+  engineRef           String?
+  chassisRef          String?
+  currentOdometer     Int       @default(0)
+  status              String    @default("ACTIVE")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  trips              Trip[]
+  fuelEntries        FuelEntry[]
+  maintenanceJobs    MaintenanceJob[]
+  tyres              Tyre[]
+  batteries          Battery[]
+  vehicleDocuments   VehicleDocument[]
+
+  @@index([vehicleNo])
+  @@index([status])
+  @@index([ownerType])
+  @@map("vehicles")
+}
+
+model Driver {
+  id            String    @id @default(cuid())
+  fullName      String
+  licenseNumber String    @unique
+  licenseExpiry DateTime
+  phone         String?
+  address       String?
+  baseSalary    Decimal   @default(0) @db.Decimal(10, 2)
+  aadharNumber  String?
+  status        String    @default("ACTIVE")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  trips              Trip[]
+  driverDocuments    DriverDocument[]
+
+  @@index([fullName])
+  @@index([status])
+  @@map("drivers")
+}
+
+model Trip {
+  id              String     @id @default(cuid())
+  tripType        TripType   @default(POINT_TO_POINT)
+  tripDate        DateTime
+  vehicleId       String
+  driverId        String
+  customerId      String?
+  origin          String
+  destination     String
+  totalKm         Decimal    @db.Decimal(10, 2)
+  freightAmount   Decimal    @default(0) @db.Decimal(10, 2)
+  revenue         Decimal    @default(0) @db.Decimal(10, 2)
+  status          TripStatus @default(SCHEDULED)
+  notes           String?
+  createdById     String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Package / rental fields
+  rentalDays      Int?
+  includedKm      Decimal?   @db.Decimal(10, 2)
+  baseAmount      Decimal?   @db.Decimal(10, 2)
+  perKmRate       Decimal?   @db.Decimal(10, 2)
+  startOdometer   Int?
+  endOdometer     Int?
+  startDateTime   DateTime?
+  endDateTime     DateTime?
+
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id])
+  driver       Driver        @relation(fields: [driverId], references: [id])
+  customer     Customer?     @relation(fields: [customerId], references: [id])
+  createdBy    User?         @relation("TripCreatedBy", fields: [createdById], references: [id])
+
+  @@index([vehicleId, tripDate])
+  @@index([driverId, tripDate])
+  @@index([tripDate])
+  @@index([status])
+  @@index([tripType])
+  @@map("trips")
+}
+
+model FuelEntry {
+  id              String     @id @default(cuid())
+  entryDate       DateTime
+  vehicleId       String
+  station         String
+  fuelType        FuelType   @default(DIESEL)
+  litres          Decimal    @db.Decimal(10, 2)
+  ratePerLitre    Decimal    @db.Decimal(10, 2)
+  totalAmount     Decimal    @db.Decimal(10, 2)
+  odometerReading Int
+  kmSinceLastFill Decimal    @db.Decimal(10, 2)
+  fuelEconomy     Decimal?   @db.Decimal(10, 2)
+  createdById     String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  vehicle      Vehicle @relation(fields: [vehicleId], references: [id])
+  createdBy    User?   @relation("FuelEntryCreatedBy", fields: [createdById], references: [id])
+
+  @@index([vehicleId, entryDate])
+  @@index([entryDate])
+  @@map("fuel_entries")
+}
+
+model MaintenanceJob {
+  id              String     @id @default(cuid())
+  jobDate         DateTime
+  vehicleId       String
+  odometerAtService Int
+  jobType         JobType
+  workshopId      String?
+  partsCost       Decimal    @default(0) @db.Decimal(10, 2)
+  labourCost      Decimal    @default(0) @db.Decimal(10, 2)
+  totalCost       Decimal    @db.Decimal(10, 2)
+  description     String?
+  createdById     String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  vehicle      Vehicle   @relation(fields: [vehicleId], references: [id])
+  workshop     Workshop? @relation(fields: [workshopId], references: [id])
+  createdBy    User?     @relation("MaintenanceJobCreatedBy", fields: [createdById], references: [id])
+
+  @@index([vehicleId, jobDate])
+  @@index([jobDate])
+  @@map("maintenance_jobs")
+}
+
+model Tyre {
+  id              String     @id @default(cuid())
+  vehicleId       String
+  axlePosition    String
+  brand           String
+  size            String
+  purchaseDate    DateTime
+  purchaseCost    Decimal    @db.Decimal(10, 2)
+  fittedOdometer  Int
+  removalOdometer Int?
+  costPerKm       Decimal?   @db.Decimal(10, 2)
+  status          String     @default("FITTED")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+  @@index([status])
+  @@map("tyres")
+}
+
+model Battery {
+  id              String     @id @default(cuid())
+  vehicleId       String
+  brand           String
+  model           String?
+  serialNumber    String?
+  purchaseDate    DateTime
+  purchaseCost    Decimal    @db.Decimal(10, 2)
+  warrantyMonths  Int        @default(0)
+  warrantyExpiry  DateTime?
+  fittedOdometer  Int
+  removalOdometer Int?
+  status          String     @default("FITTED")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+  @@index([status])
+  @@map("batteries")
+}
+
+model DriverDocument {
+  id              String         @id @default(cuid())
+  driverId        String
+  documentType    DocumentType
+  documentNumber  String?
+  issueDate       DateTime
+  expiryDate      DateTime
+  renewalCost     Decimal        @default(0) @db.Decimal(10, 2)
+  alertStatus     AlertStatus    @default(GREEN)
+  daysToExpiry    Int?
+  fileUrl         String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([driverId, documentType])
+  @@index([expiryDate])
+  @@index([alertStatus])
+  @@map("driver_documents")
+}
+
+model VehicleDocument {
+  id              String         @id @default(cuid())
+  vehicleId       String
+  documentType    DocumentType
+  documentNumber  String?
+  issueDate       DateTime
+  expiryDate      DateTime
+  renewalCost     Decimal        @default(0) @db.Decimal(10, 2)
+  alertStatus     AlertStatus    @default(GREEN)
+  daysToExpiry    Int?
+  fileUrl         String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId, documentType])
+  @@index([expiryDate])
+  @@index([alertStatus])
+  @@map("vehicle_documents")
+}

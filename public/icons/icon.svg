@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="80" fill="#1e293b"/>
+  <path d="M372 190l-90 90 90 90-26 26-116-116 116-116z" fill="#38bdf8"/>
+  <path d="M180 160h300v22h-300z" fill="#f1f5f9"/>
+  <path d="M180 225h300v22h-300z" fill="#cbd5e1"/>
+  <path d="M180 290h200v22H180z" fill="#94a3b8"/>
+  <path d="M180 160h22v162h-22z" fill="#0f172a"/>
+  <path d="M202 160h22v162h-22z" fill="#1e293b"/>
+  <path d="M224 160h22v162h-22z" fill="#475569"/>
+  <path d="M246 160h22v162h-22z" fill="#334155"/>
+  <path d="M268 160h22v162h-22z" fill="#475569"/>
+  <path d="M290 160h22v162h-22z" fill="#1e293b"/>
+  <path d="M312 160h22v162h-22z" fill="#94a3b8"/>
+  <path d="M334 160h22v162h-22z" fill="#cbd5e1"/>
+  <circle cx="120" cy="120" r="38" fill="#facc15"/>
+  <path d="M120 82a38 38 0 0 1 38 38 38 38 0 0 1-76 0 38 38 0 0 1 38-38z" fill="#eab308"/>
+  <path d="M105 345a55 55 0 0 1 110 0v65a30 30 0 0 1-30 30H135a30 30 0 0 1-30-30z" fill="#0f172a"/>
+  <circle cx="160" cy="140" r="12" fill="#f8fafc"/>
+</svg>
