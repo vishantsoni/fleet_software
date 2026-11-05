@@ -37,6 +37,9 @@
 | Tyre.costPerKm | >= 0 (auto-calculated: purchaseCost / (removalOdometer - fittedOdometer)) |
 | DriverDocument.renewalCost | >= 0 |
 | VehicleDocument.renewalCost | >= 0 |
+| DriverDocument.customType / VehicleDocument.customType | Required when documentType is OTHER |
+| Trip.partyName | <= 200 characters |
+| Trip.socketNo | <= 100 characters |
 
 ## 3. Date Constraints
 

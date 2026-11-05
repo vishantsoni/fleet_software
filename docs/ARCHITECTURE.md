@@ -202,13 +202,15 @@ fleet_software/
 ### 1. Vehicle Master (`src/app/vehicles/`)
 - **Table**: TanStack Table with filters (make, model, owner type, status)
 - **Form**: shadcn/ui Dialog with Zod validation
-- **Details Page**: Tabs for trips, fuel, maintenance, tyres, compliance
+- **Details Page**: Tabs for trips, fuel, maintenance, tyres, and vehicle documents
+- **Documents**: RC, insurance, permits, GPS paper, cylinder, speed, and custom "Other" types with expiry alerts; supports PDF/JPEG/JPG/PNG/WEBP uploads
 - **Server Actions**: create, update, delete, list, search
 
 ### 2. Trip & Revenue Register (`src/app/trips/`)
 - **Form**: Vehicle selection (pre-filtered by active vehicles), driver selection, origin/destination autocomplete
 - **Workflow**: Scheduled → In Progress → Completed (status transition)
 - **Validation**: Odometer progression checked against FuelEntry / MaintenanceJob
+- **Trip Details**: Party name, socket number, and POD tracking (Pending, Sent, Received)
 
 ### 3. Diesel / Fuel Register (`src/app/fuel/`)
 - **Auto-calculation**:

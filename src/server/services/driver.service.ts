@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { CreateDriverSchema } from '@/types/driver'
 import { Decimal } from '@prisma/client/runtime/library'
+import type { DocumentType as PrismaDocumentType } from '@prisma/client'
 
 export class DriverService {
   static async create(input: { fullName: string }) {
@@ -153,7 +154,8 @@ export class DriverService {
 
   static async createDocument(input: {
     driverId: string
-    documentType: string
+    documentType: PrismaDocumentType
+    customType: string | null
     documentNumber: string | null
     issueDate: Date
     expiryDate: Date

@@ -57,6 +57,9 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           tripType: trip.tripType,
           vehicleId: trip.vehicleId,
           driverId: trip.driverId,
+          partyName: trip.partyName || '',
+          podStatus: trip.podStatus || 'PENDING',
+          socketNo: trip.socketNo || '',
           origin: trip.origin,
           destination: trip.destination,
           totalKm: trip.totalKm,
@@ -74,6 +77,9 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           tripType: 'POINT_TO_POINT',
           vehicleId: '',
           driverId: '',
+          partyName: '',
+          podStatus: 'PENDING',
+          socketNo: '',
           origin: '',
           destination: '',
           totalKm: 0,
@@ -94,12 +100,24 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
   useEffect(() => {
     if (trip) {
       reset({
+        tripType: trip.tripType,
         vehicleId: trip.vehicleId,
         driverId: trip.driverId,
+        partyName: trip.partyName || '',
+        podStatus: trip.podStatus || 'PENDING',
+        socketNo: trip.socketNo || '',
         origin: trip.origin,
         destination: trip.destination,
         totalKm: trip.totalKm,
         revenue: trip.revenue,
+        rentalDays: trip.rentalDays ?? undefined,
+        includedKm: trip.includedKm ?? undefined,
+        baseAmount: trip.baseAmount ?? undefined,
+        perKmRate: trip.perKmRate ?? undefined,
+        startOdometer: trip.startOdometer ?? undefined,
+        endOdometer: trip.endOdometer ?? undefined,
+        startDateTime: trip.startDateTime ? new Date(trip.startDateTime) : undefined,
+        endDateTime: trip.endDateTime ? new Date(trip.endDateTime) : undefined,
       })
       setTripDate(new Date(trip.tripDate).toISOString().split('T')[0])
     }
@@ -217,6 +235,55 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="partyName">Party Name</Label>
+          <Input
+            id="partyName"
+            {...register('partyName')}
+            maxLength={200}
+            disabled={loading}
+          />
+          {errors.partyName && (
+            <p className="text-sm text-destructive">{errors.partyName.message as string}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="socketNo">Socket No</Label>
+          <Input
+            id="socketNo"
+            {...register('socketNo')}
+            maxLength={100}
+            disabled={loading}
+          />
+          {errors.socketNo && (
+            <p className="text-sm text-destructive">{errors.socketNo.message as string}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="podStatus">POD Status</Label>
+          <Select
+            value={watch('podStatus') || 'PENDING'}
+            onValueChange={(value: 'PENDING' | 'SENT' | 'RECEIVED') =>
+              setValue('podStatus', value, { shouldValidate: true })
+            }
+            disabled={loading}
+          >
+            <SelectTrigger id="podStatus">
+              <SelectValue placeholder="Select POD status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="SENT">Sent</SelectItem>
+              <SelectItem value="RECEIVED">Received</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.podStatus && (
+            <p className="text-sm text-destructive">{errors.podStatus.message as string}</p>
+          )}
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="origin">Origin</Label>
           <Input

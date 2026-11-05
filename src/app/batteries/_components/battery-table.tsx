@@ -3,23 +3,51 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { BatteryForm } from './battery-form'
+import { useToast } from '@/components/ui/toast'
 
 export function BatteryTable() {
   const [batteries, setBatteries] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [editingBattery, setEditingBattery] = useState<any | null>(null)
+  const { toast } = useToast()
 
   const fetchBatteries = async () => {
     const res = await fetch('/api/batteries')
     const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Failed to load batteries')
     setBatteries(data.batteries || [])
   }
 
-  useEffect(() => { fetchBatteries() }, [])
+  useEffect(() => {
+    fetchBatteries().catch((error) => {
+      console.error('Failed to load batteries:', error)
+    })
+  }, [])
+
+  const closeForm = () => {
+    setShowForm(false)
+    setEditingBattery(null)
+  }
 
   return (
     <div className="space-y-4">
-      <Button onClick={() => setShowForm(true)}>Fit Battery</Button>
-      {showForm && <BatteryForm onClose={() => setShowForm(false)} onSuccess={() => { setShowForm(false); fetchBatteries() }} />}
+      <Button onClick={() => { setEditingBattery(null); setShowForm(true) }}>Fit Battery</Button>
+      {showForm && (
+        <BatteryForm
+          battery={editingBattery || undefined}
+          onClose={closeForm}
+          onSuccess={() => {
+            closeForm()
+            fetchBatteries().catch((error) => {
+              toast({
+                title: 'Error',
+                description: error instanceof Error ? error.message : 'Failed to refresh batteries',
+                variant: 'destructive',
+              })
+            })
+          }}
+        />
+      )}
       
       {/* Desktop Table View */}
       <div className="hidden md:block rounded border overflow-x-auto">
@@ -28,6 +56,8 @@ export function BatteryTable() {
             <tr className="border-b bg-muted/50">
               <th className="p-2 text-left font-medium">Vehicle</th>
               <th className="p-2 text-left font-medium">Brand</th>
+              <th className="p-2 text-left font-medium">Vendor Name</th>
+              <th className="p-2 text-left font-medium">Battery Type</th>
               <th className="p-2 text-left font-medium">Model</th>
               <th className="p-2 text-left font-medium">Serial</th>
               <th className="p-2 text-left font-medium">Purchase Date</th>
@@ -35,12 +65,14 @@ export function BatteryTable() {
               <th className="p-2 text-left font-medium">Warranty (mo)</th>
               <th className="p-2 text-left font-medium">Fitted Odo</th>
               <th className="p-2 text-left font-medium">Status</th>
+              <th className="p-2 text-left font-medium">Bill</th>
+              <th className="p-2 text-left font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
             {batteries.length === 0 ? (
               <tr>
-                <td colSpan={9} className="p-6 text-center text-muted-foreground">
+                <td colSpan={13} className="p-6 text-center text-muted-foreground">
                   No batteries found
                 </td>
               </tr>
@@ -49,6 +81,8 @@ export function BatteryTable() {
                 <tr key={b.id} className="border-b hover:bg-muted/30">
                   <td className="p-2">{b.vehicle?.vehicleNo}</td>
                   <td className="p-2">{b.brand}</td>
+                  <td className="p-2">{b.vendorName || '—'}</td>
+                  <td className="p-2">{b.batteryType || '—'}</td>
                   <td className="p-2">{b.model}</td>
                   <td className="p-2">{b.serialNumber}</td>
                   <td className="p-2">{b.purchaseDate ? new Date(b.purchaseDate).toLocaleDateString() : ''}</td>
@@ -56,6 +90,14 @@ export function BatteryTable() {
                   <td className="p-2">{b.warrantyMonths}</td>
                   <td className="p-2">{b.fittedOdometer}</td>
                   <td className="p-2">{b.status}</td>
+                  <td className="p-2">
+                    {b.billUrl ? <a href={b.billUrl} target="_blank" rel="noreferrer" className="underline">View bill</a> : '—'}
+                  </td>
+                  <td className="p-2">
+                    <Button variant="ghost" size="sm" onClick={() => { setEditingBattery(b); setShowForm(true) }}>
+                      Edit
+                    </Button>
+                  </td>
                 </tr>
               ))
             )}
@@ -84,6 +126,12 @@ export function BatteryTable() {
                   <span className="text-muted-foreground">Serial:</span> {b.serialNumber}
                 </div>
                 <div>
+                  <span className="text-muted-foreground">Vendor:</span> {b.vendorName || '—'}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Battery Type:</span> {b.batteryType || '—'}
+                </div>
+                <div>
                   <span className="text-muted-foreground">Warranty:</span> {b.warrantyMonths} mo
                 </div>
                 <div>
@@ -95,7 +143,19 @@ export function BatteryTable() {
                 <div>
                   <span className="text-muted-foreground">Fitted Odo:</span> {b.fittedOdometer}
                 </div>
+                <div>
+                  <span className="text-muted-foreground">Bill:</span>{' '}
+                  {b.billUrl ? <a href={b.billUrl} target="_blank" rel="noreferrer" className="underline">View bill</a> : '—'}
+                </div>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => { setEditingBattery(b); setShowForm(true) }}
+              >
+                Edit
+              </Button>
             </div>
           ))
         )}

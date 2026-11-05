@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { listVehiclesAction } from '@/server/actions/vehicles'
 import { useToast } from '@/components/ui/toast'
+import { uploadBill } from '@/lib/upload-bill'
 
 interface BatteryFormProps { battery?: any; onClose: () => void; onSuccess: () => void }
 
@@ -19,13 +20,17 @@ export function BatteryForm({ battery, onClose, onSuccess }: BatteryFormProps) {
   const [formData, setFormData] = useState({
     vehicleId: battery?.vehicleId || '',
     brand: battery?.brand || '',
+    vendorName: battery?.vendorName || '',
+    batteryType: battery?.batteryType || '',
     model: battery?.model || '',
     serialNumber: battery?.serialNumber || '',
     purchaseDate: battery?.purchaseDate ? new Date(battery.purchaseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     purchaseCost: battery?.purchaseCost || 0,
     warrantyMonths: battery?.warrantyMonths || 0,
     fittedOdometer: battery?.fittedOdometer || 0,
+    billUrl: battery?.billUrl || null,
   })
+  const [billFile, setBillFile] = useState<File | null>(null)
 
   useEffect(() => {
     async function fetchVehicles() {
@@ -43,9 +48,10 @@ export function BatteryForm({ battery, onClose, onSuccess }: BatteryFormProps) {
     e.preventDefault()
     setLoading(true)
     try {
+      const billUrl = billFile ? await uploadBill(billFile) : formData.billUrl
       const url = battery ? `/api/batteries/${battery.id}` : '/api/batteries'
       const method = battery ? 'PUT' : 'POST'
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) })
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...formData, billUrl }) })
       if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to save battery') }
       toast({ title: battery ? 'Battery updated' : 'Battery fitted', description: 'Successfully saved' })
       onSuccess()
@@ -74,6 +80,14 @@ export function BatteryForm({ battery, onClose, onSuccess }: BatteryFormProps) {
               <Input value={formData.brand} onChange={(e) => handleChange('brand', e.target.value)} disabled={loading} />
             </div>
             <div className="space-y-2">
+              <Label>Vendor Name</Label>
+              <Input value={formData.vendorName} onChange={(e) => handleChange('vendorName', e.target.value)} disabled={loading} />
+            </div>
+            <div className="space-y-2">
+              <Label>Battery Type</Label>
+              <Input value={formData.batteryType} onChange={(e) => handleChange('batteryType', e.target.value)} disabled={loading} />
+            </div>
+            <div className="space-y-2">
               <Label>Model</Label>
               <Input value={formData.model} onChange={(e) => handleChange('model', e.target.value)} disabled={loading} />
             </div>
@@ -96,6 +110,21 @@ export function BatteryForm({ battery, onClose, onSuccess }: BatteryFormProps) {
             <div className="space-y-2">
               <Label>Fitted Odometer *</Label>
               <Input type="number" value={formData.fittedOdometer} onChange={(e) => handleChange('fittedOdometer', parseInt(e.target.value) || 0)} disabled={loading} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="batteryBillFile">Purchase Bill (optional)</Label>
+              <Input
+                id="batteryBillFile"
+                type="file"
+                accept=".pdf,.jpeg,.jpg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+                onChange={(e) => setBillFile(e.target.files?.[0] || null)}
+                disabled={loading}
+              />
+              <p className="text-sm text-muted-foreground">PDF or image, maximum 10 MB.</p>
+              {billFile && <p className="text-sm">{billFile.name}</p>}
+              {!billFile && formData.billUrl && (
+                <a className="text-sm underline" href={formData.billUrl} target="_blank" rel="noreferrer">View current bill</a>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4">

@@ -9,11 +9,12 @@ export async function updateDriverDocumentAction(input: unknown & { id: string }
     const validated = UpdateDocumentSchema.parse(input)
     const { id, ...data } = validated
 
-    let updateData = { ...data }
+    const updateData: Record<string, unknown> = { ...data }
     if (data.expiryDate) {
       const daysToExpiry = calculateDaysToExpiry(data.expiryDate)
       const alertStatus = calculateAlertStatus(daysToExpiry)
-      updateData = { ...updateData, daysToExpiry, alertStatus }
+      updateData.daysToExpiry = daysToExpiry
+      updateData.alertStatus = alertStatus
     }
 
     const document = await DriverService.updateDocument(id, updateData)

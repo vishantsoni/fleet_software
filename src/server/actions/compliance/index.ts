@@ -67,13 +67,11 @@ export async function updateDocument(
 ) {
   const validated = UpdateDocumentSchema.parse(input)
 
-  const daysToExpiry = calculateDaysToExpiry(validated.expiryDate)
-  const alertStatus = calculateAlertStatus(daysToExpiry)
-
-  const data: any = {
-    ...validated,
-    daysToExpiry,
-    alertStatus,
+  const data = { ...validated }
+  if (validated.expiryDate) {
+    const daysToExpiry = calculateDaysToExpiry(validated.expiryDate)
+    const alertStatus = calculateAlertStatus(daysToExpiry)
+    Object.assign(data, { daysToExpiry, alertStatus })
   }
 
   if (entityType === 'VEHICLE') {
@@ -250,7 +248,7 @@ export async function getExpiryAlerts() {
   const alerts = [
     ...vehicleDocuments.map((doc) => ({
       documentId: doc.id,
-      documentType: doc.documentType,
+      documentType: (doc.customType || doc.documentType).replace(/_/g, ' '),
       entityId: doc.vehicleId,
       entityType: 'VEHICLE' as const,
       entityName: doc.vehicle.vehicleNo,
@@ -260,7 +258,7 @@ export async function getExpiryAlerts() {
     })),
     ...driverDocuments.map((doc) => ({
       documentId: doc.id,
-      documentType: doc.documentType,
+      documentType: (doc.customType || doc.documentType).replace(/_/g, ' '),
       entityId: doc.driverId,
       entityType: 'DRIVER' as const,
       entityName: doc.driver.fullName,

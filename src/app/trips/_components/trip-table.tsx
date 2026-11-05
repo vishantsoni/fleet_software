@@ -64,6 +64,9 @@ export function TripTable({ trips }: TripTableProps) {
               <th className="p-3 text-left font-medium">Date</th>
               <th className="p-3 text-left font-medium">Vehicle</th>
               <th className="p-3 text-left font-medium">Driver</th>
+              <th className="p-3 text-left font-medium">Party Name</th>
+              <th className="p-3 text-left font-medium">Socket No</th>
+              <th className="p-3 text-center font-medium">POD Status</th>
               <th className="p-3 text-left font-medium">Origin</th>
               <th className="p-3 text-left font-medium">Destination</th>
               <th className="p-3 text-right font-medium">KM</th>
@@ -76,7 +79,7 @@ export function TripTable({ trips }: TripTableProps) {
           <tbody>
             {trips.length === 0 ? (
               <tr>
-                <td colSpan={9} className="p-6 text-center text-muted-foreground">
+                <td colSpan={13} className="p-6 text-center text-muted-foreground">
                   No trips found
                 </td>
               </tr>
@@ -86,6 +89,21 @@ export function TripTable({ trips }: TripTableProps) {
                   <td className="p-3">{formatDate(trip.tripDate)}</td>
                   <td className="p-3">{trip.vehicle?.vehicleNo} - {trip.vehicle?.makeModel || ''}</td>
                   <td className="p-3">{trip.driver?.fullName || trip.driverId}</td>
+                  <td className="p-3">{trip.partyName || '-'}</td>
+                  <td className="p-3">{trip.socketNo || '-'}</td>
+                  <td className="p-3 text-center">
+                    <Badge
+                      variant={
+                        trip.podStatus === 'RECEIVED'
+                          ? 'success'
+                          : trip.podStatus === 'SENT'
+                            ? 'secondary'
+                            : 'warning'
+                      }
+                    >
+                      {(trip.podStatus || 'PENDING').replace(/_/g, ' ')}
+                    </Badge>
+                  </td>
                   <td className="p-3">{trip.origin}</td>
                   <td className="p-3">{trip.destination}</td>
                   <td className="p-3 text-right">{formatNumber(trip.totalKm, 1)}</td>
@@ -151,6 +169,17 @@ export function TripTable({ trips }: TripTableProps) {
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-muted-foreground">Driver:</span> {trip.driver?.fullName || trip.driverId}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Party Name:</span> {trip.partyName || '-'}
+                </div>
+                <div className="flex justify-between gap-3">
+                  <div>
+                    <span className="text-muted-foreground">Socket No:</span> {trip.socketNo || '-'}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">POD:</span> {(trip.podStatus || 'PENDING').replace(/_/g, ' ')}
+                  </div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Route:</span> {trip.origin} → {trip.destination}

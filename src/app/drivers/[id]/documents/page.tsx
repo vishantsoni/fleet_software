@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft, FileText, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { WhatsAppDocumentShare } from '@/app/_components/whatsapp-document-share'
 
 interface DriverDocumentsPageProps {
   params: Promise<{ id: string }>
@@ -82,17 +83,29 @@ async function DriverDocuments({ id }: { id: string }) {
           {driver.driverDocuments && driver.driverDocuments.length > 0 ? (
             <div className="space-y-3">
               {driver.driverDocuments.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div key={doc.id} className="relative flex flex-col items-start justify-between gap-3 rounded-lg border p-4 pt-16 md:flex-row md:items-center md:pr-36 md:pt-4">
                   <div className="flex items-center gap-4">
                     <FileText className="h-6 w-6 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{doc.documentType}</p>
+                      <p className="font-medium">
+                        {doc.customType || doc.documentType.replace(/_/g, ' ')}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {doc.documentNumber ? `No: ${doc.documentNumber}` : 'No document number'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-right">
+                  <div className="flex flex-wrap items-center gap-4 text-right">
+                    {doc.fileUrl && (
+                      <a
+                        href={doc.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-primary underline"
+                      >
+                        View document
+                      </a>
+                    )}
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Issued</p>
                       <p className="font-medium">{formatDate(doc.issueDate)}</p>
@@ -112,6 +125,12 @@ async function DriverDocuments({ id }: { id: string }) {
                       <span className="ml-1">{doc.alertStatus}</span>
                     </Badge>
                   </div>
+                  {doc.fileUrl && (
+                    <WhatsAppDocumentShare
+                      fileUrl={doc.fileUrl}
+                      documentName={`${driver.fullName} - ${doc.customType || doc.documentType.replace(/_/g, ' ')}`}
+                    />
+                  )}
                 </div>
               ))}
             </div>

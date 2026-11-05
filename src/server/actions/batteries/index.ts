@@ -2,10 +2,23 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { BatterySchema } from '@/server/utils/validators'
 
-export async function fitBattery(input: any) {
-  const data = { ...input, purchaseDate: new Date(input.purchaseDate) }
+export async function fitBattery(input: unknown) {
+  const data = BatterySchema.parse(input)
   const battery = await prisma.battery.create({
+    data,
+    include: { vehicle: true },
+  })
+  revalidatePath('/batteries')
+  revalidatePath('/dashboard')
+  return battery
+}
+
+export async function updateBattery(id: string, input: unknown) {
+  const data = BatterySchema.parse(input)
+  const battery = await prisma.battery.update({
+    where: { id },
     data,
     include: { vehicle: true },
   })

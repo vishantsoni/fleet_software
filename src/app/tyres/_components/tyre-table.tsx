@@ -39,6 +39,7 @@ export function TyreTable({ tyres }: TyreTableProps) {
               <th className="p-3 text-left font-medium">Brand</th>
               <th className="p-3 text-left font-medium">Size</th>
               <th className="p-3 text-left font-medium">Purchase Date</th>
+              <th className="p-3 text-left font-medium">Bill</th>
               <th className="p-3 text-right font-medium">Cost</th>
               <th className="p-3 text-center font-medium">Fitted KM</th>
               <th className="p-3 text-center font-medium">Removal KM</th>
@@ -49,7 +50,7 @@ export function TyreTable({ tyres }: TyreTableProps) {
           <tbody>
             {tyres.length === 0 ? (
               <tr>
-                <td colSpan={10} className="p-6 text-center text-muted-foreground">
+                <td colSpan={11} className="p-6 text-center text-muted-foreground">
                   No tyres found
                 </td>
               </tr>
@@ -61,6 +62,9 @@ export function TyreTable({ tyres }: TyreTableProps) {
                   <td className="p-3">{tyre.brand}</td>
                   <td className="p-3">{tyre.size}</td>
                   <td className="p-3">{formatDate(tyre.purchaseDate)}</td>
+                  <td className="p-3">
+                    {tyre.billUrl ? <a href={tyre.billUrl} target="_blank" rel="noreferrer" className="underline">View bill</a> : '—'}
+                  </td>
                   <td className="p-3 text-right">{formatCurrency(tyre.purchaseCost)}</td>
                   <td className="p-3 text-center">{tyre.fittedOdometer.toLocaleString()}</td>
                   <td className="p-3 text-center">{tyre.removalOdometer?.toLocaleString() || '—'}</td>
@@ -116,6 +120,10 @@ export function TyreTable({ tyres }: TyreTableProps) {
                 </div>
                 <div>
                   <span className="text-muted-foreground">Purchased:</span> {formatDate(tyre.purchaseDate)}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Bill:</span>{' '}
+                  {tyre.billUrl ? <a href={tyre.billUrl} target="_blank" rel="noreferrer" className="underline">View bill</a> : '—'}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Fitted KM:</span> {tyre.fittedOdometer.toLocaleString()}

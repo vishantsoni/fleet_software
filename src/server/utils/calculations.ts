@@ -13,6 +13,25 @@ export function calculateFuelEconomy(
   return kmSinceLastFill / litres
 }
 
+export function calculateFuelMetrics(
+  odometerReading: number,
+  previousOdometer: number | null,
+  litres: number
+): { kmSinceLastFill: number; fuelEconomy: number | null } {
+  if (previousOdometer === null) {
+    return { kmSinceLastFill: 0, fuelEconomy: null }
+  }
+  if (odometerReading < previousOdometer) {
+    throw new Error('Odometer reading cannot be lower than the previous fuel entry.')
+  }
+
+  const kmSinceLastFill = odometerReading - previousOdometer
+  return {
+    kmSinceLastFill,
+    fuelEconomy: calculateFuelEconomy(kmSinceLastFill, litres),
+  }
+}
+
 export function calculateTyreCostPerKm(
   purchaseCost: number,
   fittedOdometer: number,

@@ -1,6 +1,6 @@
 export interface ComplianceDocument {
   id: string
-  documentType: 'INSURANCE' | 'FITNESS' | 'ROAD_TAX' | 'NATIONAL_PERMIT' | 'POLLUTION_CERTIFICATE' | 'DRIVER_LICENSE' | 'VEHICLE_REGISTRATION'
+  documentType: string
   documentNumber?: string
   issueDate: Date
   expiryDate: Date
@@ -13,7 +13,7 @@ export interface ComplianceDocument {
 }
 
 export interface CreateComplianceDocumentInput {
-  documentType: 'INSURANCE' | 'FITNESS' | 'ROAD_TAX' | 'NATIONAL_PERMIT' | 'POLLUTION_CERTIFICATE' | 'DRIVER_LICENSE' | 'VEHICLE_REGISTRATION'
+  documentType: string
   documentNumber?: string
   issueDate: Date
   expiryDate: Date

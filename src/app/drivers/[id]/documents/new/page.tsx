@@ -27,6 +27,7 @@ export default function NewDriverDocumentPage({ params }: NewDriverDocumentPageP
   interface FormData {
     driverId: string
     documentType: string
+    customType: string
     documentNumber: string | null
     issueDate: string
     expiryDate: string
@@ -37,6 +38,7 @@ export default function NewDriverDocumentPage({ params }: NewDriverDocumentPageP
   const [formData, setFormData] = useState<FormData>({
     driverId: '',
     documentType: 'DRIVER_LICENSE',
+    customType: '',
     documentNumber: null,
     issueDate: new Date().toISOString().split('T')[0],
     expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -127,7 +129,11 @@ export default function NewDriverDocumentPage({ params }: NewDriverDocumentPageP
             <Label htmlFor="documentType">Document Type</Label>
             <Select
               value={formData.documentType}
-              onValueChange={(value) => setFormData({ ...formData, documentType: value })}
+              onValueChange={(value) => setFormData({
+                ...formData,
+                documentType: value,
+                customType: value === 'OTHER' ? formData.customType : '',
+              })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select document type" />
@@ -138,12 +144,32 @@ export default function NewDriverDocumentPage({ params }: NewDriverDocumentPageP
                 <SelectItem value="FITNESS">Fitness Certificate</SelectItem>
                 <SelectItem value="ROAD_TAX">Road Tax</SelectItem>
                 <SelectItem value="NATIONAL_PERMIT">National Permit</SelectItem>
+                <SelectItem value="FIVE_YEAR_PERMIT">5 Year Permit</SelectItem>
+                <SelectItem value="GPS_PAPER">GPS Paper</SelectItem>
+                <SelectItem value="CYLINDER">Cylinder</SelectItem>
+                <SelectItem value="SPEED">Speed</SelectItem>
                 <SelectItem value="POLLUTION_CERTIFICATE">Pollution Certificate</SelectItem>
                 <SelectItem value="VEHICLE_REGISTRATION">Vehicle Registration</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
               </SelectContent>
             </Select>
             {errors.documentType && <p className="text-sm text-red-600">{errors.documentType}</p>}
           </div>
+
+          {formData.documentType === 'OTHER' && (
+            <div className="space-y-2">
+              <Label htmlFor="customType">Other Document Name</Label>
+              <Input
+                id="customType"
+                value={formData.customType}
+                onChange={(e) => setFormData({ ...formData, customType: e.target.value })}
+                maxLength={100}
+                required
+                placeholder="Enter document type"
+              />
+              {errors.customType && <p className="text-sm text-red-600">{errors.customType}</p>}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="documentNumber">Document Number</Label>

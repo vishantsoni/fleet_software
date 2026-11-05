@@ -29,9 +29,14 @@ enum DocumentType {
   FITNESS
   ROAD_TAX
   NATIONAL_PERMIT
+  GPS_PAPER
+  CYLINDER
+  SPEED
+  FIVE_YEAR_PERMIT
   POLLUTION_CERTIFICATE
   DRIVER_LICENSE
   VEHICLE_REGISTRATION
+  OTHER
 }
 
 enum AlertStatus {
@@ -58,6 +63,12 @@ enum TripStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+enum PodStatus {
+  PENDING
+  SENT
+  RECEIVED
 }
 
 model User {
@@ -150,10 +161,44 @@ model Driver {
 
   trips              Trip[]
   driverDocuments    DriverDocument[]
+  advances           DriverAdvance[]
+  salaryPayments     DriverSalaryPayment[]
 
   @@index([fullName])
   @@index([status])
   @@map("drivers")
+}
+
+model DriverAdvance {
+  id          String   @id @default(cuid())
+  driverId    String
+  amount      Decimal  @db.Decimal(10, 2)
+  advanceDate DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([driverId, advanceDate])
+  @@map("driver_advances")
+}
+
+model DriverSalaryPayment {
+  id                 String   @id @default(cuid())
+  driverId           String
+  salaryYear         Int
+  salaryMonth        Int
+  baseSalary         Decimal  @db.Decimal(10, 2)
+  advanceDeducted    Decimal  @db.Decimal(10, 2)
+  netSalary          Decimal  @db.Decimal(10, 2)
+  paidAt             DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@unique([driverId, salaryYear, salaryMonth])
+  @@index([driverId, salaryYear, salaryMonth])
+  @@map("driver_salary_payments")
 }
 
 model Trip {
@@ -163,6 +208,9 @@ model Trip {
   vehicleId       String
   driverId        String
   customerId      String?
+  partyName       String?
+  podStatus       PodStatus  @default(PENDING)
+  socketNo        String?
   origin          String
   destination     String
   totalKm         Decimal    @db.Decimal(10, 2)
@@ -253,6 +301,7 @@ model Tyre {
   size            String
   purchaseDate    DateTime
   purchaseCost    Decimal    @db.Decimal(10, 2)
+  billUrl         String?
   fittedOdometer  Int
   removalOdometer Int?
   costPerKm       Decimal?   @db.Decimal(10, 2)
@@ -271,10 +320,13 @@ model Battery {
   id              String     @id @default(cuid())
   vehicleId       String
   brand           String
+  vendorName      String?
+  batteryType     String?
   model           String?
   serialNumber    String?
   purchaseDate    DateTime
   purchaseCost    Decimal    @db.Decimal(10, 2)
+  billUrl         String?
   warrantyMonths  Int        @default(0)
   warrantyExpiry  DateTime?
   fittedOdometer  Int
@@ -294,6 +346,7 @@ model DriverDocument {
   id              String         @id @default(cuid())
   driverId        String
   documentType    DocumentType
+  customType      String?
   documentNumber  String?
   issueDate       DateTime
   expiryDate      DateTime
@@ -316,6 +369,7 @@ model VehicleDocument {
   id              String         @id @default(cuid())
   vehicleId       String
   documentType    DocumentType
+  customType      String?
   documentNumber  String?
   issueDate       DateTime
   expiryDate      DateTime

@@ -12,6 +12,9 @@ export async function createDriverDocumentAction(input: unknown) {
 
     const document = await DriverService.createDocument({
       ...validated,
+      customType: validated.customType ?? null,
+      documentNumber: validated.documentNumber ?? null,
+      fileUrl: validated.fileUrl ?? null,
       daysToExpiry,
       alertStatus,
     })

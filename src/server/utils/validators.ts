@@ -52,6 +52,9 @@ export const TripSchema = z.object({
   vehicleId: z.string(),
   driverId: z.string(),
   customerId: z.string().optional().nullable(),
+  partyName: z.string().trim().max(200).optional().nullable(),
+  podStatus: z.enum(['PENDING', 'SENT', 'RECEIVED']).default('PENDING'),
+  socketNo: z.string().trim().max(100).optional().nullable(),
   origin: z.string().min(1).max(200),
   destination: z.string().min(1).max(200),
   totalKm: z.number().nonnegative().multipleOf(0.01),
@@ -86,7 +89,9 @@ export const FuelEntrySchema = z.object({
 })
 
 export const CreateFuelEntrySchema = FuelEntrySchema
-export const UpdateFuelEntrySchema = FuelEntrySchema.partial()
+export const UpdateFuelEntrySchema = FuelEntrySchema.partial().extend({
+  id: z.string().min(1),
+})
 
 export const MaintenanceJobSchema = z.object({
   jobDate: z.coerce
@@ -114,6 +119,7 @@ export const TyreSchema = z.object({
     .date()
     .refine(isNotInFuture, { message: 'Purchase date cannot be in the future' }),
   purchaseCost: z.number().positive().multipleOf(0.01),
+  billUrl: z.string().max(2048).regex(/^\/api\/parts-bills\/[a-f0-9-]{36}\.(pdf|jpg|png|webp)$/i).optional().nullable(),
   fittedOdometer: z.number().int().nonnegative(),
   removalOdometer: z.number().int().nonnegative().optional().nullable(),
   status: z.enum(['FITTED', 'REMOVED', 'SCRAPPED']).default('FITTED'),
@@ -122,21 +128,73 @@ export const TyreSchema = z.object({
 export const CreateTyreSchema = TyreSchema
 export const UpdateTyreSchema = TyreSchema.partial()
 
+export const BatterySchema = z.object({
+  vehicleId: z.string().min(1),
+  brand: z.string().trim().min(1).max(100),
+  vendorName: z.string().trim().max(150).optional().nullable(),
+  batteryType: z.string().trim().max(100).optional().nullable(),
+  model: z.string().trim().max(100).optional().nullable(),
+  serialNumber: z.string().trim().max(100).optional().nullable(),
+  purchaseDate: z.coerce.date().refine(isNotInFuture, { message: 'Purchase date cannot be in the future' }),
+  purchaseCost: z.number().positive().multipleOf(0.01),
+  billUrl: z.string().max(2048).regex(/^\/api\/parts-bills\/[a-f0-9-]{36}\.(pdf|jpg|png|webp)$/i).optional().nullable(),
+  warrantyMonths: z.number().int().nonnegative().default(0),
+  fittedOdometer: z.number().int().nonnegative(),
+})
+
 export const DocumentSchema = z.object({
   documentType: z.enum([
     'INSURANCE',
     'FITNESS',
     'ROAD_TAX',
     'NATIONAL_PERMIT',
+    'GPS_PAPER',
+    'CYLINDER',
+    'SPEED',
+    'FIVE_YEAR_PERMIT',
     'POLLUTION_CERTIFICATE',
     'DRIVER_LICENSE',
     'VEHICLE_REGISTRATION',
+    'OTHER',
   ]),
+  customType: z.string().trim().max(100).optional().nullable(),
   documentNumber: z.string().max(100).optional().nullable(),
   issueDate: z.coerce.date(),
   expiryDate: z.coerce.date(),
   renewalCost: z.number().nonnegative().default(0),
+  fileUrl: z
+    .string()
+    .max(2048)
+    .refine((value) => {
+      if (/^\/api\/vehicle-documents\/[a-f0-9-]+\.(pdf|jpg|png|webp)$/i.test(value)) {
+        return true
+      }
+
+      try {
+        return ['http:', 'https:'].includes(new URL(value).protocol)
+      } catch {
+        return false
+      }
+    }, 'Enter a valid document URL')
+    .optional()
+    .nullable(),
 })
 
-export const CreateDocumentSchema = DocumentSchema
-export const UpdateDocumentSchema = DocumentSchema.partial()
+export const CreateDocumentSchema = DocumentSchema.superRefine((document, context) => {
+  if (document.documentType === 'OTHER' && !document.customType?.trim()) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['customType'],
+      message: 'Please enter the document type',
+    })
+  }
+})
+export const UpdateDocumentSchema = DocumentSchema.partial().superRefine((document, context) => {
+  if (document.documentType === 'OTHER' && !document.customType?.trim()) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['customType'],
+      message: 'Please enter the document type',
+    })
+  }
+})

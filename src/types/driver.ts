@@ -21,28 +21,69 @@ export const DocumentType = z.enum([
   'FITNESS',
   'ROAD_TAX',
   'NATIONAL_PERMIT',
+  'GPS_PAPER',
+  'CYLINDER',
+  'SPEED',
+  'FIVE_YEAR_PERMIT',
   'POLLUTION_CERTIFICATE',
   'DRIVER_LICENSE',
   'VEHICLE_REGISTRATION',
+  'OTHER',
 ])
 
 export const AlertStatus = z.enum(['GREEN', 'AMBER', 'RED'])
 
-export const CreateDocumentSchema = z.object({
+const DocumentSchema = z.object({
   driverId: z.string(),
   documentType: DocumentType,
+  customType: z.string().trim().max(100).optional().nullable(),
   documentNumber: z.string().max(100).optional().nullable(),
   issueDate: z.coerce.date(),
   expiryDate: z.coerce.date(),
   renewalCost: z.coerce.number().nonnegative().default(0),
-  fileUrl: z.string().url().optional().nullable(),
+  fileUrl: z
+    .string()
+    .max(2048)
+    .refine((value) => {
+      if (/^\/api\/vehicle-documents\/[a-f0-9-]+\.(pdf|jpg|png|webp)$/i.test(value)) {
+        return true
+      }
+
+      try {
+        return ['http:', 'https:'].includes(new URL(value).protocol)
+      } catch {
+        return false
+      }
+    }, 'Enter a valid document URL')
+    .optional()
+    .nullable(),
+})
+
+export const CreateDocumentSchema = DocumentSchema.superRefine((document, context) => {
+  if (document.documentType === 'OTHER' && !document.customType?.trim()) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['customType'],
+      message: 'Please enter the document type',
+    })
+  }
 })
 
 export type CreateDriverDocumentInput = z.infer<typeof CreateDocumentSchema>
 
-export const UpdateDocumentSchema = CreateDocumentSchema.partial()
+export const UpdateDocumentSchema = DocumentSchema.partial()
+  .extend({ id: z.string().min(1) })
+  .superRefine((document, context) => {
+    if (document.documentType === 'OTHER' && !document.customType?.trim()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['customType'],
+        message: 'Please enter the document type',
+      })
+    }
+  })
 
-export type UpdateDriverDocumentInput = z.infer<typeof UpdateDocumentSchema> & { id: string }
+export type UpdateDriverDocumentInput = z.infer<typeof UpdateDocumentSchema>
 
 export type Driver = {
   id: string
@@ -80,6 +121,7 @@ export type DriverWithRelations = Driver & {
     id: string
     driverId: string
     documentType: string
+    customType: string | null
     documentNumber: string | null
     issueDate: Date
     expiryDate: Date
@@ -96,6 +138,7 @@ export type DriverDocument = {
   id: string
   driverId: string
   documentType: string
+  customType: string | null
   documentNumber: string | null
   issueDate: Date
   expiryDate: Date

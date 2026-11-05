@@ -22,6 +22,7 @@ ENV NODE_ENV production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+RUN mkdir -p /app/uploads/vehicle-documents && chown -R nextjs:nodejs /app/uploads
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./

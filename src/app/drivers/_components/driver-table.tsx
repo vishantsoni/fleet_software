@@ -22,7 +22,7 @@ import {
   getSortedRowModel,
   SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Trash2, FileText } from 'lucide-react'
+import { ArrowUpDown, Pencil, Trash2, FileText, Banknote } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 type Driver = {
@@ -97,13 +97,26 @@ export function DriverTable({ data }: DriverTableProps) {
               variant="ghost"
               size="icon"
               onClick={() => router.push(`/drivers/${driver.id}`)}
+              aria-label={`View ${driver.fullName}`}
+              title="View driver"
             >
               <FileText className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => router.push(`/drivers/${driver.id}/salary`)}
+              aria-label={`Manage salary and advances for ${driver.fullName}`}
+              title="Salary & advances"
+            >
+              <Banknote className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => router.push(`/drivers/${driver.id}/edit`)}
+              aria-label={`Edit ${driver.fullName}`}
+              title="Edit driver"
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -215,12 +228,12 @@ export function DriverTable({ data }: DriverTableProps) {
                   <span className="text-muted-foreground">License Expiry:</span> {new Date(driver.licenseExpiry).toLocaleDateString()}
                 </div>
               </div>
-              <div className="flex items-center gap-2 pt-2 border-t">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => router.push(`/drivers/${driver.id}`)}
-                  className="flex-1"
+                  className="w-full"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   View
@@ -228,8 +241,17 @@ export function DriverTable({ data }: DriverTableProps) {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => router.push(`/drivers/${driver.id}/salary`)}
+                  className="w-full"
+                >
+                  <Banknote className="h-4 w-4 mr-2" />
+                  Salary / Advance
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => router.push(`/drivers/${driver.id}/edit`)}
-                  className="flex-1"
+                  className="w-full"
                 >
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
@@ -246,7 +268,7 @@ export function DriverTable({ data }: DriverTableProps) {
                     }
                   }}
                   disabled={deletingId === driver.id}
-                  className="flex-1 text-red-600 hover:text-red-600"
+                  className="w-full text-red-600 hover:text-red-600"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete

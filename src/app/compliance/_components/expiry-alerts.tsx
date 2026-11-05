@@ -41,7 +41,7 @@ export function ExpiryAlerts({ alerts }: ExpiryAlertsProps) {
             alerts.map((alert) => (
               <TableRow key={alert.documentId}>
                 <TableCell className="font-medium">
-                  {alert.documentType.replace(/_/g, ' ')}
+                  {alert.documentType}
                 </TableCell>
                 <TableCell>{alert.entityName}</TableCell>
                 <TableCell>

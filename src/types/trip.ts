@@ -5,6 +5,9 @@ export interface Trip {
   vehicleId: string
   driverId: string
   customerId?: string
+  partyName?: string
+  podStatus: 'PENDING' | 'SENT' | 'RECEIVED'
+  socketNo?: string
   origin: string
   destination: string
   totalKm: number
@@ -33,6 +36,9 @@ export interface CreateTripInput {
   vehicleId: string
   driverId: string
   customerId?: string
+  partyName?: string
+  podStatus?: 'PENDING' | 'SENT' | 'RECEIVED'
+  socketNo?: string
   origin: string
   destination: string
   totalKm: number

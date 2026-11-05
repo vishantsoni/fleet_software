@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog'
 import { listVehiclesAction } from '@/server/actions/vehicles'
 import { useToast } from '@/components/ui/toast'
+import { uploadBill } from '@/lib/upload-bill'
 
 const AXLE_POSITIONS = [
   'FL', 'FR', 'RL', 'RR',
@@ -53,9 +54,11 @@ export function TyreForm({ tyre, onClose, onSuccess }: TyreFormProps) {
       ? new Date(tyre.purchaseDate).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
     purchaseCost: tyre?.purchaseCost || 0,
+    billUrl: tyre?.billUrl || null,
     fittedOdometer: tyre?.fittedOdometer || 0,
   })
 
+  const [billFile, setBillFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -69,6 +72,7 @@ export function TyreForm({ tyre, onClose, onSuccess }: TyreFormProps) {
           ? new Date(tyre.purchaseDate).toISOString().split('T')[0]
           : new Date().toISOString().split('T')[0],
         purchaseCost: tyre.purchaseCost || 0,
+        billUrl: tyre.billUrl || null,
         fittedOdometer: tyre.fittedOdometer || 0,
       })
     }
@@ -124,6 +128,7 @@ export function TyreForm({ tyre, onClose, onSuccess }: TyreFormProps) {
     setLoading(true)
 
     try {
+      const billUrl = billFile ? await uploadBill(billFile) : formData.billUrl
       const payload = {
         vehicleId: formData.vehicleId,
         axlePosition: formData.axlePosition,
@@ -131,6 +136,7 @@ export function TyreForm({ tyre, onClose, onSuccess }: TyreFormProps) {
         size: formData.size,
         purchaseDate: new Date(formData.purchaseDate).toISOString(),
         purchaseCost: Number(formData.purchaseCost),
+        billUrl,
         fittedOdometer: Number(formData.fittedOdometer),
       }
 
@@ -269,6 +275,22 @@ export function TyreForm({ tyre, onClose, onSuccess }: TyreFormProps) {
               />
               {errors.fittedOdometer && <p className="text-sm text-destructive">{errors.fittedOdometer}</p>}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="billFile">Purchase Bill (optional)</Label>
+            <Input
+              id="billFile"
+              type="file"
+              accept=".pdf,.jpeg,.jpg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+              onChange={(event) => setBillFile(event.target.files?.[0] || null)}
+              disabled={loading}
+            />
+            <p className="text-sm text-muted-foreground">PDF or image, maximum 10 MB.</p>
+            {billFile && <p className="text-sm">{billFile.name}</p>}
+            {!billFile && formData.billUrl && (
+              <a className="text-sm underline" href={formData.billUrl} target="_blank" rel="noreferrer">View current bill</a>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

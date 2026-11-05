@@ -45,8 +45,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - vehicle_documents:/app/uploads
     command: npm run dev
 
 volumes:
   postgres_data:
   redis_data:
+  vehicle_documents:

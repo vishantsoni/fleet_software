@@ -72,7 +72,9 @@ async function FuelDetailContent({ params }: FuelDetailPageProps) {
         </div>
         <div className="rounded-lg border bg-card p-4">
           <h3 className="text-sm font-medium text-muted-foreground">KM Since Last Fill</h3>
-          <p className="text-lg font-semibold">{formatNumber(entry.kmSinceLastFill, 2)} km</p>
+          <p className="text-lg font-semibold">
+            {entry.fuelEconomy !== undefined ? `${formatNumber(entry.kmSinceLastFill, 2)} km` : 'N/A'}
+          </p>
         </div>
         <div className="rounded-lg border bg-card p-4">
           <h3 className="text-sm font-medium text-muted-foreground">Fuel Economy</h3>

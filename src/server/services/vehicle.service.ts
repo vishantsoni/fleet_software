@@ -76,6 +76,9 @@ export class VehicleService {
           take: 10,
           orderBy: { purchaseDate: 'desc' },
         },
+        vehicleDocuments: {
+          orderBy: { expiryDate: 'asc' },
+        },
       },
     })
 
@@ -108,6 +111,10 @@ export class VehicleService {
         ...tyre,
         purchaseCost: Number(tyre.purchaseCost),
         costPerKm: tyre.costPerKm ? Number(tyre.costPerKm) : null,
+      })),
+      vehicleDocuments: vehicle.vehicleDocuments.map((document) => ({
+        ...document,
+        renewalCost: Number(document.renewalCost),
       })),
     }
   }

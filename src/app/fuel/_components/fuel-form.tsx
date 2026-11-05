@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createFuelEntryAction, updateFuelEntryAction, listVehiclesAction } from '@/server/actions'
+import {
+  createFuelEntryAction,
+  updateFuelEntryAction,
+  listVehiclesAction,
+  previewFuelMetricsAction,
+} from '@/server/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,6 +40,9 @@ export function FuelForm({ entry, onSuccess }: FuelFormProps) {
   const [vehicles, setVehicles] = useState<{ id: string; vehicleNo: string; makeModel: string }[]>([])
   const [calculatedKm, setCalculatedKm] = useState<number | null>(null)
   const [calculatedEconomy, setCalculatedEconomy] = useState<number | null>(null)
+  const [hasPreviousFill, setHasPreviousFill] = useState(false)
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [previewError, setPreviewError] = useState('')
 
   const [formData, setFormData] = useState({
     entryDate: entry?.entryDate
@@ -67,10 +75,67 @@ export function FuelForm({ entry, onSuccess }: FuelFormProps) {
         ratePerLitre: entry.ratePerLitre,
         odometerReading: entry.odometerReading,
       })
-      setCalculatedKm(entry.kmSinceLastFill)
-      setCalculatedEconomy(entry.fuelEconomy ?? null)
     }
   }, [entry])
+
+  useEffect(() => {
+    if (!formData.vehicleId || formData.litres <= 0) {
+      setCalculatedKm(null)
+      setCalculatedEconomy(null)
+      setHasPreviousFill(false)
+      setPreviewError('')
+      setIsCalculating(false)
+      return
+    }
+
+    let active = true
+    setIsCalculating(true)
+    const timeout = setTimeout(async () => {
+      try {
+        const result = await previewFuelMetricsAction({
+          vehicleId: formData.vehicleId,
+          entryDate: new Date(formData.entryDate),
+          odometerReading: formData.odometerReading,
+          litres: formData.litres,
+          entryId: entry?.id,
+        })
+
+        if (!active) return
+        if (result.success) {
+          setCalculatedKm(result.data.kmSinceLastFill)
+          setCalculatedEconomy(result.data.fuelEconomy)
+          setHasPreviousFill(result.data.kmSinceLastFill !== null)
+          setPreviewError('')
+          setErrors((previous) => {
+            const next = { ...previous }
+            delete next.odometerReading
+            return next
+          })
+        } else {
+          setCalculatedKm(null)
+          setCalculatedEconomy(null)
+          setHasPreviousFill(false)
+          setPreviewError(result.error)
+          setErrors((previous) => ({ ...previous, odometerReading: result.error }))
+        }
+      } catch (error) {
+        if (!active) return
+        const message = error instanceof Error ? error.message : 'Could not calculate fuel economy.'
+        setCalculatedKm(null)
+        setCalculatedEconomy(null)
+        setHasPreviousFill(false)
+        setPreviewError(message)
+        setErrors((previous) => ({ ...previous, odometerReading: message }))
+      } finally {
+        if (active) setIsCalculating(false)
+      }
+    }, 250)
+
+    return () => {
+      active = false
+      clearTimeout(timeout)
+    }
+  }, [entry?.id, formData.entryDate, formData.litres, formData.odometerReading, formData.vehicleId])
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
@@ -80,6 +145,7 @@ export function FuelForm({ entry, onSuccess }: FuelFormProps) {
     if (formData.litres <= 0) newErrors.litres = 'Litres must be greater than 0'
     if (formData.ratePerLitre <= 0) newErrors.ratePerLitre = 'Rate per litre must be greater than 0'
     if (formData.odometerReading < 0) newErrors.odometerReading = 'Odometer reading must be non-negative'
+    if (previewError) newErrors.odometerReading = previewError
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -236,13 +302,23 @@ export function FuelForm({ entry, onSuccess }: FuelFormProps) {
         <div className="space-y-2">
           <Label>KM Since Last Fill</Label>
           <div className="text-2xl font-bold text-primary">
-            {calculatedKm !== null ? calculatedKm.toFixed(2) : 'Auto-calculated'}
+            {isCalculating
+              ? 'Calculating...'
+              : calculatedKm !== null
+                ? calculatedKm.toFixed(2)
+                : 'No previous fuel fill'}
           </div>
         </div>
         <div className="space-y-2">
           <Label>Fuel Economy (km/L)</Label>
           <div className="text-2xl font-bold text-primary">
-            {calculatedEconomy !== null ? calculatedEconomy.toFixed(2) : 'Auto-calculated'}
+            {isCalculating
+              ? 'Calculating...'
+              : calculatedEconomy !== null
+                ? calculatedEconomy.toFixed(2)
+                : hasPreviousFill
+                  ? 'N/A'
+                  : 'Available after next fill'}
           </div>
         </div>
       </div>
@@ -251,7 +327,7 @@ export function FuelForm({ entry, onSuccess }: FuelFormProps) {
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || isCalculating}>
           {isSubmitting ? 'Saving...' : entry ? 'Update Fuel Entry' : 'Create Fuel Entry'}
         </Button>
       </div>

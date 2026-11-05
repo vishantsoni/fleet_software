@@ -6,6 +6,7 @@ export interface Tyre {
   size: string
   purchaseDate: Date
   purchaseCost: number
+  billUrl?: string | null
   fittedOdometer: number
   removalOdometer?: number
   costPerKm?: number
@@ -26,6 +27,7 @@ export interface CreateTyreInput {
   size: string
   purchaseDate: Date
   purchaseCost: number
+  billUrl?: string | null
   fittedOdometer: number
   removalOdometer?: number
   status?: 'FITTED' | 'REMOVED' | 'SCRAPPED'

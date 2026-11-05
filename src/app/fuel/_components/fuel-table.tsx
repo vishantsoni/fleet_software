@@ -152,7 +152,10 @@ export function FuelTable({ data }: FuelTableProps) {
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => formatNumber(row.getValue('kmSinceLastFill'), 2),
+      cell: ({ row }) =>
+        row.original.fuelEconomy === undefined
+          ? '-'
+          : formatNumber(row.getValue('kmSinceLastFill'), 2),
     },
     {
       accessorKey: 'fuelEconomy',

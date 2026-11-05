@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { WhatsAppDocumentShare } from '@/app/_components/whatsapp-document-share'
 
 interface VehicleDetailPageProps {
   params: Promise<{ id: string }>
@@ -42,6 +43,7 @@ async function VehicleDetail({ id }: { id: string }) {
           <TabsTrigger value="fuel">Fuel ({vehicle.fuelEntries?.length || 0})</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance ({vehicle.maintenanceJobs?.length || 0})</TabsTrigger>
           <TabsTrigger value="tyres">Tyres ({vehicle.tyres?.length || 0})</TabsTrigger>
+          <TabsTrigger value="documents">Documents ({vehicle.vehicleDocuments?.length || 0})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -217,6 +219,86 @@ async function VehicleDetail({ id }: { id: string }) {
                 </div>
               ) : (
                 <p className="text-muted-foreground">No tyres found.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>Vehicle Documents</CardTitle>
+              <Button asChild size="sm">
+                <Link href={`/vehicles/${vehicle.id}/documents/new`}>Add Document</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {vehicle.vehicleDocuments?.length ? (
+                <div className="space-y-3">
+                  {vehicle.vehicleDocuments.map((document) => (
+                    <div
+                      key={document.id}
+                      className="relative flex flex-col gap-3 rounded-lg border p-4 pt-16 md:flex-row md:items-center md:justify-between md:pb-4 md:pr-36 md:pt-4"
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium">
+                          {document.customType || document.documentType.replace(/_/g, ' ')}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {document.documentNumber ? `No: ${document.documentNumber}` : 'No document number'}
+                        </p>
+                        {document.fileUrl && (
+                          <a
+                            href={document.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm text-primary underline"
+                          >
+                            View document
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <p>
+                          <span className="text-muted-foreground">Issued: </span>
+                          {new Date(document.issueDate).toLocaleDateString('en-IN')}
+                        </p>
+                        <p>
+                          <span className="text-muted-foreground">Expires: </span>
+                          {new Date(document.expiryDate).toLocaleDateString('en-IN')}
+                        </p>
+                        <Badge
+                          variant={
+                            document.alertStatus === 'RED'
+                              ? 'danger'
+                              : document.alertStatus === 'AMBER'
+                                ? 'warning'
+                                : 'success'
+                          }
+                        >
+                          {document.alertStatus === 'RED'
+                            ? 'Expired'
+                            : document.alertStatus === 'AMBER'
+                              ? 'Expiring Soon'
+                              : 'Valid'}
+                        </Badge>
+                      </div>
+                      {document.fileUrl && (
+                        <WhatsAppDocumentShare
+                          fileUrl={document.fileUrl}
+                          documentName={`${vehicle.vehicleNo} - ${document.customType || document.documentType.replace(/_/g, ' ')}`}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="text-muted-foreground">No vehicle documents added yet.</p>
+                  <Button asChild className="mt-4" variant="outline">
+                    <Link href={`/vehicles/${vehicle.id}/documents/new`}>Add Document</Link>
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
