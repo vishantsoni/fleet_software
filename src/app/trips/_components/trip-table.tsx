@@ -65,7 +65,7 @@ export function TripTable({ trips }: TripTableProps) {
               <th className="p-3 text-left font-medium">Vehicle</th>
               <th className="p-3 text-left font-medium">Driver</th>
               <th className="p-3 text-left font-medium">Party Name</th>
-              <th className="p-3 text-left font-medium">Socket No</th>
+              <th className="p-3 text-left font-medium">Docket No</th>
               <th className="p-3 text-center font-medium">POD Status</th>
               <th className="p-3 text-left font-medium">Origin</th>
               <th className="p-3 text-left font-medium">Destination</th>
@@ -175,7 +175,7 @@ export function TripTable({ trips }: TripTableProps) {
                 </div>
                 <div className="flex justify-between gap-3">
                   <div>
-                    <span className="text-muted-foreground">Socket No:</span> {trip.socketNo || '-'}
+                    <span className="text-muted-foreground">Docket No:</span> {trip.socketNo || '-'}
                   </div>
                   <div>
                     <span className="text-muted-foreground">POD:</span> {(trip.podStatus || 'PENDING').replace(/_/g, ' ')}

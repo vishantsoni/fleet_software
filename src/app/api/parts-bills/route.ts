@@ -13,7 +13,7 @@ const uploadDirectory = path.join(process.env.DOCUMENT_UPLOAD_DIR || path.join(p
 function getFileExtension(file: File, bytes: Buffer) {
   const extension = path.extname(file.name).toLowerCase()
   const signatures: Record<string, { mimeType: string; valid: boolean }> = {
-    '.pdf': { mimeType: 'application/pdf', valid: bytes.subarray(0, 5).toString('ascii') === '%PDF-' },
+    '.pdf': { mimeType: 'application/pdf', valid: bytes.subarray(0, 1024).includes(Buffer.from('%PDF-')) },
     '.jpg': { mimeType: 'image/jpeg', valid: bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff },
     '.jpeg': { mimeType: 'image/jpeg', valid: bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff },
     '.png': {
@@ -27,7 +27,8 @@ function getFileExtension(file: File, bytes: Buffer) {
   }
 
   const signature = signatures[extension]
-  if (!signature || !signature.valid || (file.type && file.type !== signature.mimeType)) return null
+  if (!signature || !signature.valid) return null
+
   return extension === '.jpeg' ? '.jpg' : extension
 }
 

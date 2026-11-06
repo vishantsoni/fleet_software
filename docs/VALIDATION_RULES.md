@@ -39,7 +39,7 @@
 | VehicleDocument.renewalCost | >= 0 |
 | DriverDocument.customType / VehicleDocument.customType | Required when documentType is OTHER |
 | Trip.partyName | <= 200 characters |
-| Trip.socketNo | <= 100 characters |
+| Trip docket number (`socketNo`) | <= 100 characters |
 
 ## 3. Date Constraints
 

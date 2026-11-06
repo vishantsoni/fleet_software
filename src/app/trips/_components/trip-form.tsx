@@ -249,7 +249,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="socketNo">Socket No</Label>
+          <Label htmlFor="socketNo">Docket No</Label>
           <Input
             id="socketNo"
             {...register('socketNo')}

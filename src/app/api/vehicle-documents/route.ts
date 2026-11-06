@@ -17,7 +17,7 @@ function getFileExtension(file: File, bytes: Buffer) {
   const signatures: Record<string, { mimeType: string; valid: boolean }> = {
     '.pdf': {
       mimeType: 'application/pdf',
-      valid: bytes.subarray(0, 5).toString('ascii') === '%PDF-',
+      valid: bytes.subarray(0, 1024).includes(Buffer.from('%PDF-')),
     },
     '.jpg': {
       mimeType: 'image/jpeg',
@@ -41,7 +41,7 @@ function getFileExtension(file: File, bytes: Buffer) {
   }
 
   const signature = signatures[extension]
-  if (!signature || !signature.valid || (file.type && file.type !== signature.mimeType)) {
+  if (!signature || !signature.valid) {
     return null
   }
 

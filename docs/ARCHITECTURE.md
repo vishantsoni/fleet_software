@@ -210,7 +210,7 @@ fleet_software/
 - **Form**: Vehicle selection (pre-filtered by active vehicles), driver selection, origin/destination autocomplete
 - **Workflow**: Scheduled → In Progress → Completed (status transition)
 - **Validation**: Odometer progression checked against FuelEntry / MaintenanceJob
-- **Trip Details**: Party name, socket number, and POD tracking (Pending, Sent, Received)
+- **Trip Details**: Party name, docket number, and POD tracking (Pending, Sent, Received)
 
 ### 3. Diesel / Fuel Register (`src/app/fuel/`)
 - **Auto-calculation**:
