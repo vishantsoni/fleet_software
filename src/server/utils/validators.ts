@@ -60,6 +60,8 @@ export const TripSchema = z.object({
   totalKm: z.number().nonnegative().multipleOf(0.01),
   freightAmount: z.number().nonnegative().default(0),
   revenue: z.number().nonnegative().default(0),
+  advance: z.number().nonnegative().multipleOf(0.01).default(0),
+  commissionDeduct: z.number().nonnegative().multipleOf(0.01).default(0),
   // Package fields
   rentalDays: z.number().int().nonnegative().optional().nullable(),
   includedKm: z.number().nonnegative().multipleOf(0.01).optional().nullable(),

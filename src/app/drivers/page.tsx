@@ -4,6 +4,7 @@ import { DriverTable } from './_components/driver-table'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
+import { ExportExcelButton } from '@/components/export-excel-button'
 
 interface DriversPageProps {
   searchParams: Promise<{ page?: string; search?: string; status?: string }>
@@ -25,6 +26,14 @@ async function DriversList({ searchParams }: DriversPageProps) {
 }
 
 export default async function DriversPage({ searchParams }: DriversPageProps) {
+  const params = await searchParams
+  const search = params.search || ''
+  const status = params.status || ''
+  const exportParams = new URLSearchParams()
+  if (search) exportParams.set('search', search)
+  if (status) exportParams.set('status', status)
+  const exportHref = `/api/exports/drivers${exportParams.size ? `?${exportParams}` : ''}`
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -32,9 +41,12 @@ export default async function DriversPage({ searchParams }: DriversPageProps) {
           <h1 className="text-3xl font-bold tracking-tight">Drivers</h1>
           <p className="text-muted-foreground">Manage your fleet drivers</p>
         </div>
-        <Button asChild>
-          <Link href="/drivers/new">New Driver</Link>
-        </Button>
+        <div className="flex gap-2">
+          <ExportExcelButton href={exportHref} filename="drivers.xlsx" />
+          <Button asChild>
+            <Link href="/drivers/new">New Driver</Link>
+          </Button>
+        </div>
       </div>
 
       <form className="flex items-center gap-4">
@@ -44,13 +56,13 @@ export default async function DriversPage({ searchParams }: DriversPageProps) {
             type="text"
             name="search"
             placeholder="Search drivers..."
-            defaultValue=""
+            defaultValue={search}
             className="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
         </div>
         <select
           name="status"
-          defaultValue=""
+          defaultValue={status}
           className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
           <option value="">All Statuses</option>

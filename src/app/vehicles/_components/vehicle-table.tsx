@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { deleteVehicleAction } from '@/server/actions/vehicles'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,12 +17,11 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   useReactTable,
   getSortedRowModel,
   SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpDown, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 
 type Vehicle = {
   id: string
@@ -37,12 +36,28 @@ type Vehicle = {
 
 interface VehicleTableProps {
   data: Vehicle[]
+  page: number
+  total: number
 }
 
-export function VehicleTable({ data }: VehicleTableProps) {
+export function VehicleTable({ data, page, total }: VehicleTableProps) {
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [sorting, setSorting] = useState<SortingState>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const totalPages = Math.max(1, Math.ceil(total / 10))
+
+  const goToPage = (nextPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (nextPage === 1) {
+      params.delete('page')
+    } else {
+      params.set('page', String(nextPage))
+    }
+    const query = params.toString()
+    router.push(query ? `${pathname}?${query}` : pathname)
+  }
 
   const columns: ColumnDef<Vehicle>[] = [
     {
@@ -141,11 +156,9 @@ export function VehicleTable({ data }: VehicleTableProps) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
     state: { sorting },
-    initialState: { pagination: { pageSize: 10 } },
   })
 
   return (
@@ -263,23 +276,33 @@ export function VehicleTable({ data }: VehicleTableProps) {
         )}
       </div>
 
-      <div className="flex items-center justify-end space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {total === 0 ? 'No vehicles' : `Showing ${(page - 1) * 10 + 1}-${Math.min(page * 10, total)} of ${total} vehicles`}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToPage(page - 1)}
+            disabled={page <= 1}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToPage(page + 1)}
+            disabled={page >= totalPages}
+          >
+            Next
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   )

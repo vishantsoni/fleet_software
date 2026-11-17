@@ -4,30 +4,32 @@ export interface Trip {
   tripDate: Date
   vehicleId: string
   driverId: string
-  customerId?: string
-  partyName?: string
+  customerId?: string | null
+  partyName?: string | null
   podStatus: 'PENDING' | 'SENT' | 'RECEIVED'
-  socketNo?: string
+  socketNo?: string | null
   origin: string
   destination: string
   totalKm: number
   freightAmount: number
   revenue: number
+  advance: number
+  commissionDeduct: number
   status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-  notes?: string
-  createdById?: string
+  notes?: string | null
+  createdById?: string | null
   createdAt: Date
   updatedAt: Date
 
   // Package fields
-  rentalDays?: number
-  includedKm?: number
-  baseAmount?: number
-  perKmRate?: number
-  startOdometer?: number
-  endOdometer?: number
-  startDateTime?: Date
-  endDateTime?: Date
+  rentalDays?: number | null
+  includedKm?: number | null
+  baseAmount?: number | null
+  perKmRate?: number | null
+  startOdometer?: number | null
+  endOdometer?: number | null
+  startDateTime?: Date | null
+  endDateTime?: Date | null
 }
 
 export interface CreateTripInput {
@@ -69,6 +71,8 @@ export interface TripWithRelations extends Trip {
   driver: {
     id: string
     fullName: string
+    licenseNumber?: string
+    phone?: string | null
   }
   customer?: {
     id: string

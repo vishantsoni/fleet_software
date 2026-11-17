@@ -1,16 +1,14 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { revalidatePath } from 'next/cache'
 
 export async function getTrip(id: string) {
   const trip = await prisma.trip.findUnique({
     where: { id },
     include: {
-      vehicle: true,
-      driver: true,
-      customer: true,
-      createdBy: true,
+      vehicle: { select: { id: true, vehicleNo: true, makeModel: true } },
+      driver: { select: { id: true, fullName: true, licenseNumber: true, phone: true } },
+      customer: { select: { id: true, name: true } },
     },
   })
 

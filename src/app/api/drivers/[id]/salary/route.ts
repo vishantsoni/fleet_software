@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
+  addDriverVehicleExpense,
   addDriverAdvance,
   getDriverSalarySummary,
+  saveDriverAttendance,
   settleDriverSalary,
 } from '@/server/actions/drivers/salary'
 import { Prisma } from '@prisma/client'
 import { ZodError } from 'zod'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/server/auth/options'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -34,6 +38,11 @@ function getErrorResponse(error: unknown) {
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+  }
+
   try {
     const { id } = await params
     const month = request.nextUrl.searchParams.get('month') || new Date().toISOString().slice(0, 7)
@@ -44,6 +53,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+  }
+
   try {
     const { id } = await params
     const body = await request.json()
@@ -53,6 +67,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (body.action === 'add-advance') {
       await addDriverAdvance(id, body, body.month)
+      return NextResponse.json({ success: true })
+    }
+    if (body.action === 'save-attendance') {
+      await saveDriverAttendance(id, body, body.month)
+      return NextResponse.json({ success: true })
+    }
+    if (body.action === 'add-vehicle-expense') {
+      await addDriverVehicleExpense(id, body, body.month)
       return NextResponse.json({ success: true })
     }
     if (body.action === 'settle-salary') {

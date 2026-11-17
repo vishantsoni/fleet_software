@@ -64,6 +64,8 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           destination: trip.destination,
           totalKm: trip.totalKm,
           revenue: trip.revenue,
+          advance: trip.advance ?? 0,
+          commissionDeduct: trip.commissionDeduct ?? 0,
           rentalDays: trip.rentalDays,
           includedKm: trip.includedKm,
           baseAmount: trip.baseAmount,
@@ -84,6 +86,8 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           destination: '',
           totalKm: 0,
           revenue: 0,
+          advance: 0,
+          commissionDeduct: 0,
           rentalDays: undefined,
           includedKm: undefined,
           baseAmount: undefined,
@@ -96,6 +100,13 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
   })
 
   const tripType = watch('tripType')
+  const totalKm = Number(watch('totalKm') || 0)
+  const effectiveRevenue = tripType === 'PACKAGE'
+    ? Number(watch('baseAmount') || 0) +
+      Math.max(0, totalKm - Number(watch('includedKm') || 0)) * Number(watch('perKmRate') || 0)
+    : Number(watch('revenue') || 0)
+  const tripBalance =
+    effectiveRevenue - Number(watch('advance') || 0) - Number(watch('commissionDeduct') || 0)
 
   useEffect(() => {
     if (trip) {
@@ -110,6 +121,8 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
         destination: trip.destination,
         totalKm: trip.totalKm,
         revenue: trip.revenue,
+        advance: trip.advance ?? 0,
+        commissionDeduct: trip.commissionDeduct ?? 0,
         rentalDays: trip.rentalDays ?? undefined,
         includedKm: trip.includedKm ?? undefined,
         baseAmount: trip.baseAmount ?? undefined,
@@ -131,7 +144,26 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           listDriversAction(1, 100, undefined, 'ACTIVE'),
         ])
         if (vehiclesRes.success) {
-          setVehicles((vehiclesRes as any).vehicles || (vehiclesRes as any).data?.vehicles || [])
+          const vehicleOptions = 'vehicles' in vehiclesRes
+            ? vehiclesRes.vehicles.map(({ id, vehicleNo, makeModel, status }) => ({
+                id,
+                vehicleNo,
+                makeModel,
+                status,
+              }))
+            : []
+          if (
+            trip?.vehicle &&
+            !vehicleOptions.some((vehicle) => vehicle.id === trip.vehicleId)
+          ) {
+            vehicleOptions.push({
+              id: trip.vehicleId,
+              vehicleNo: trip.vehicle.vehicleNo,
+              makeModel: trip.vehicle.makeModel,
+              status: trip.vehicle.status,
+            })
+          }
+          setVehicles(vehicleOptions)
         }
         if (driversRes.success) {
           setDrivers((driversRes as any).drivers || (driversRes as any).data?.drivers || [])
@@ -141,7 +173,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
       }
     }
     fetchOptions()
-  }, [])
+  }, [trip])
 
   const onSubmit = async (data: any) => {
     setLoading(true)
@@ -153,6 +185,8 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
         tripDate: new Date(tripDate),
         totalKm: Number(data.totalKm),
         revenue: Number(data.revenue),
+        advance: Number(data.advance ?? 0),
+        commissionDeduct: Number(data.commissionDeduct ?? 0),
       }
 
       let result
@@ -231,6 +265,44 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           {errors.driverId && (
             <p className="text-sm text-destructive">{errors.driverId.message as string}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="advance">Advance (INR)</Label>
+          <Input
+            id="advance"
+            type="number"
+            min="0"
+            step="0.01"
+            {...register('advance', { valueAsNumber: true })}
+            disabled={loading}
+          />
+          {errors.advance && (
+            <p className="text-sm text-destructive">{errors.advance.message as string}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="commissionDeduct">Commission deduct (INR)</Label>
+          <Input
+            id="commissionDeduct"
+            type="number"
+            min="0"
+            step="0.01"
+            {...register('commissionDeduct', { valueAsNumber: true })}
+            disabled={loading}
+          />
+          {errors.commissionDeduct && (
+            <p className="text-sm text-destructive">{errors.commissionDeduct.message as string}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="balance">Balance (INR)</Label>
+          <Input id="balance" value={tripBalance.toFixed(2)} readOnly />
+          <p className="text-xs text-muted-foreground">
+            Revenue − advance − commission deduct
+          </p>
         </div>
       </div>
 
