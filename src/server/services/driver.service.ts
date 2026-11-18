@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma'
-import { CreateDriverSchema } from '@/types/driver'
+import { CreateDriverSchema, type CreateDriverInput } from '@/types/driver'
 import { Decimal } from '@prisma/client/runtime/library'
 import type { DocumentType as PrismaDocumentType } from '@prisma/client'
 
@@ -21,7 +21,7 @@ export class DriverService {
     }
   }
 
-  static async update(id: string, input: { fullName: string }) {
+  static async update(id: string, input: Partial<CreateDriverInput>) {
     const validated = CreateDriverSchema.partial().parse({ ...input, id })
 
     const data: Record<string, unknown> = { ...validated }

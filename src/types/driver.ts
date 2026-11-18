@@ -12,9 +12,11 @@ export const CreateDriverSchema = z.object({
 
 export type CreateDriverInput = z.infer<typeof CreateDriverSchema>
 
-export const UpdateDriverSchema = CreateDriverSchema.partial()
+export const UpdateDriverSchema = CreateDriverSchema.partial().extend({
+  id: z.string().min(1, 'Driver ID is required'),
+})
 
-export type UpdateDriverInput = z.infer<typeof UpdateDriverSchema> & { id: string }
+export type UpdateDriverInput = z.infer<typeof UpdateDriverSchema>
 
 export const DocumentType = z.enum([
   'INSURANCE',

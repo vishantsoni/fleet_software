@@ -5,6 +5,21 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
+function formatDateKey(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function parseDateValue(value: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  }
+  return new Date(value)
+}
+
 interface DatePickerProps {
   value?: string
   onChange?: (value: string) => void
@@ -27,7 +42,7 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false)
   const [viewDate, setViewDate] = React.useState(() => {
     if (value) {
-      const d = new Date(value)
+      const d = parseDateValue(value)
       return isNaN(d.getTime()) ? new Date() : d
     }
     return new Date()
@@ -38,7 +53,7 @@ export function DatePicker({
   React.useEffect(() => {
     if (value) {
       setSelected(value)
-      const d = new Date(value)
+      const d = parseDateValue(value)
       if (!isNaN(d.getTime())) setViewDate(d)
     }
   }, [value])
@@ -64,7 +79,7 @@ export function DatePicker({
 
   const handleSelect = (day: number) => {
     const date = new Date(year, month, day)
-    const formatted = date.toISOString().split('T')[0]
+    const formatted = formatDateKey(date)
     setSelected(formatted)
     onChange?.(formatted)
     setOpen(false)
@@ -73,7 +88,7 @@ export function DatePicker({
   const handleToday = () => {
     const today = new Date()
     setViewDate(today)
-    const formatted = today.toISOString().split('T')[0]
+    const formatted = formatDateKey(today)
     setSelected(formatted)
     onChange?.(formatted)
     setOpen(false)
@@ -90,7 +105,7 @@ export function DatePicker({
 
   const isDisabled = (day: number) => {
     const date = new Date(year, month, day)
-    const formatted = date.toISOString().split('T')[0]
+    const formatted = formatDateKey(date)
     if (min && formatted < min) return true
     if (max && formatted > max) return true
     return false
@@ -99,7 +114,7 @@ export function DatePicker({
   const isSelected = (day: number) => {
     if (!selected) return false
     const date = new Date(year, month, day)
-    return date.toISOString().split('T')[0] === selected
+    return formatDateKey(date) === selected
   }
 
   return (
@@ -115,7 +130,7 @@ export function DatePicker({
         onClick={() => setOpen(!open)}
       >
         {selected ? (
-          <span>{new Date(selected).toLocaleDateString('en-GB')}</span>
+          <span>{parseDateValue(selected).toLocaleDateString('en-GB')}</span>
         ) : (
           <span>{placeholder}</span>
         )}

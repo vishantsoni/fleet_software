@@ -1,9 +1,9 @@
 'use server'
 
 import { DriverService } from '@/server/services/driver.service'
-import { UpdateDriverSchema } from '@/types/driver'
+import { UpdateDriverSchema, type UpdateDriverInput } from '@/types/driver'
 
-export async function updateDriverAction(input: unknown & { id: string }) {
+export async function updateDriverAction(input: UpdateDriverInput) {
   try {
     const validated = UpdateDriverSchema.parse(input)
     const { id, ...data } = validated
