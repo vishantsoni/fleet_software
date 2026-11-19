@@ -15,6 +15,7 @@ export async function updateTrip(id: string, input: z.infer<typeof UpdateTripSch
       vehicle: true,
       driver: true,
       customer: true,
+      bankAccount: true,
     },
   })
 

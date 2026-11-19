@@ -25,6 +25,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { createTrip, updateTrip, updateTripStatus } from '@/server/actions/trips'
 import { listVehiclesAction } from '@/server/actions/vehicles'
 import { listDriversAction } from '@/server/actions/drivers'
+import { listBankAccountsAction } from '@/server/actions/finance'
 
 interface TripFormProps {
   trip?: any
@@ -37,6 +38,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
   const [error, setError] = useState('')
   const [vehicles, setVehicles] = useState<{ id: string; vehicleNo: string; makeModel: string; status: string }[]>([])
   const [drivers, setDrivers] = useState<{ id: string; fullName: string; licenseNumber: string; status: string }[]>([])
+  const [bankAccounts, setBankAccounts] = useState<{ id: string; bankName: string; accountNumber: string; isActive: boolean }[]>([])
   const [tripDate, setTripDate] = useState<string>(
     trip?.tripDate
       ? new Date(trip.tripDate).toISOString().split('T')[0]
@@ -57,6 +59,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           tripType: trip.tripType,
           vehicleId: trip.vehicleId,
           driverId: trip.driverId,
+          bankAccountId: trip.bankAccountId || null,
           partyName: trip.partyName || '',
           podStatus: trip.podStatus || 'PENDING',
           socketNo: trip.socketNo || '',
@@ -66,6 +69,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           revenue: trip.revenue,
           advance: trip.advance ?? 0,
           commissionDeduct: trip.commissionDeduct ?? 0,
+          narration: trip.narration || '',
           rentalDays: trip.rentalDays,
           includedKm: trip.includedKm,
           baseAmount: trip.baseAmount,
@@ -79,6 +83,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           tripType: 'POINT_TO_POINT',
           vehicleId: '',
           driverId: '',
+          bankAccountId: null,
           partyName: '',
           podStatus: 'PENDING',
           socketNo: '',
@@ -88,6 +93,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           revenue: 0,
           advance: 0,
           commissionDeduct: 0,
+          narration: '',
           rentalDays: undefined,
           includedKm: undefined,
           baseAmount: undefined,
@@ -114,6 +120,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
         tripType: trip.tripType,
         vehicleId: trip.vehicleId,
         driverId: trip.driverId,
+        bankAccountId: trip.bankAccountId || null,
         partyName: trip.partyName || '',
         podStatus: trip.podStatus || 'PENDING',
         socketNo: trip.socketNo || '',
@@ -123,6 +130,7 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
         revenue: trip.revenue,
         advance: trip.advance ?? 0,
         commissionDeduct: trip.commissionDeduct ?? 0,
+        narration: trip.narration || '',
         rentalDays: trip.rentalDays ?? undefined,
         includedKm: trip.includedKm ?? undefined,
         baseAmount: trip.baseAmount ?? undefined,
@@ -139,10 +147,16 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [vehiclesRes, driversRes] = await Promise.all([
+        const [vehiclesRes, driversRes, bankAccountsRes] = await Promise.all([
           listVehiclesAction(1, 100, undefined, undefined, 'ACTIVE'),
           listDriversAction(1, 100, undefined, 'ACTIVE'),
+          listBankAccountsAction(true),
         ])
+        const accountOptions = bankAccountsRes.filter((account) => account.isActive)
+        if (trip?.bankAccount && !accountOptions.some((account) => account.id === trip.bankAccountId)) {
+          accountOptions.push({ ...trip.bankAccount, isActive: false })
+        }
+        setBankAccounts(accountOptions)
         if (vehiclesRes.success) {
           const vehicleOptions = 'vehicles' in vehiclesRes
             ? vehiclesRes.vehicles.map(({ id, vehicleNo, makeModel, status }) => ({
@@ -280,6 +294,27 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           {errors.advance && (
             <p className="text-sm text-destructive">{errors.advance.message as string}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bankAccountId">Payment received in</Label>
+          <Select
+            value={watch('bankAccountId') || 'none'}
+            onValueChange={(value) => setValue('bankAccountId', value === 'none' ? null : value, { shouldValidate: true })}
+            disabled={loading}
+          >
+            <SelectTrigger id="bankAccountId">
+              <SelectValue placeholder="Select bank account" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Not selected</SelectItem>
+              {bankAccounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.bankName} - {account.accountNumber}{account.isActive ? '' : ' (Inactive)'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -555,6 +590,21 @@ export function TripForm({ trip, onClose, onSuccess }: TripFormProps) {
           </div>
         </fieldset>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="narration">Narration</Label>
+        <textarea
+          id="narration"
+          {...register('narration')}
+          maxLength={1000}
+          rows={3}
+          disabled={loading}
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        {errors.narration && (
+          <p className="text-sm text-destructive">{errors.narration.message as string}</p>
+        )}
+      </div>
 
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onClose} disabled={loading}>

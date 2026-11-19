@@ -36,6 +36,7 @@ export async function updateTripStatus(
       vehicle: true,
       driver: true,
       customer: true,
+      bankAccount: true,
     },
   })
 

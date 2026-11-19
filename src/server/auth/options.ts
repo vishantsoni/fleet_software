@@ -17,10 +17,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials.email },
+          include: { assignedRole: true },
         })
 
-        if (!user) {
+        if (!user || !user.isActive) {
           return null
         }
 
@@ -38,6 +39,11 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          permissions: user.role === 'ADMIN'
+            ? ['*']
+            : Array.isArray(user.assignedRole?.permissions)
+              ? (user.assignedRole.permissions as string[])
+              : [],
         }
       },
     }),
@@ -47,6 +53,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.id = user.id
+        token.permissions = user.permissions
       }
       return token
     },
@@ -54,6 +61,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.role = token.role
         session.user.id = token.id
+        session.user.permissions = token.permissions
       }
       return session
     },

@@ -81,15 +81,48 @@ model User {
   email         String    @unique
   name          String?
   role          UserRole  @default(OPERATIONS)
+  roleId        String?
+  isActive      Boolean   @default(true)
   passwordHash  String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  assignedRole  Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   createdTrips  Trip[]     @relation("TripCreatedBy")
   fuelEntries  FuelEntry[] @relation("FuelEntryCreatedBy")
   maintenanceJobs MaintenanceJob[] @relation("MaintenanceJobCreatedBy")
 
   @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions Json     @default("[]")
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+
+  @@map("roles")
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  bankName      String
+  accountNumber String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  trips    Trip[]
+  expenses Expense[]
+
+  @@unique([bankName, accountNumber])
+  @@index([isActive])
+  @@map("bank_accounts")
 }
 
 model Customer {
@@ -144,6 +177,7 @@ model Vehicle {
   tyres              Tyre[]
   batteries          Battery[]
   vehicleDocuments   VehicleDocument[]
+  expenses           Expense[]
 
   @@index([vehicleNo])
   @@index([status])
@@ -170,6 +204,7 @@ model Driver {
   salaryPayments     DriverSalaryPayment[]
   attendance         DriverAttendance[]
   vehicleExpenses    DriverVehicleExpense[]
+  expenses           Expense[]
 
   @@index([fullName])
   @@index([status])
@@ -245,6 +280,7 @@ model Trip {
   vehicleId       String
   driverId        String
   customerId      String?
+  bankAccountId   String?
   partyName       String?
   podStatus       PodStatus  @default(PENDING)
   socketNo        String?
@@ -256,6 +292,7 @@ model Trip {
   advance         Decimal    @default(0) @db.Decimal(10, 2)
   commissionDeduct Decimal   @default(0) @db.Decimal(10, 2)
   status          TripStatus @default(SCHEDULED)
+  narration       String?
   notes           String?
   createdById     String?
   createdAt       DateTime   @default(now())
@@ -274,14 +311,44 @@ model Trip {
   vehicle      Vehicle       @relation(fields: [vehicleId], references: [id])
   driver       Driver        @relation(fields: [driverId], references: [id])
   customer     Customer?     @relation(fields: [customerId], references: [id])
+  bankAccount  BankAccount?  @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
   createdBy    User?         @relation("TripCreatedBy", fields: [createdById], references: [id])
 
   @@index([vehicleId, tripDate])
   @@index([driverId, tripDate])
+  @@index([bankAccountId])
   @@index([tripDate])
   @@index([status])
   @@index([tripType])
   @@map("trips")
+}
+
+model Expense {
+  id            String      @id @default(cuid())
+  expenseDate   DateTime    @db.Date
+  vehicleId     String?
+  driverId      String?
+  description   String
+  amount        Decimal     @db.Decimal(10, 2)
+  bankAccountId String?
+  paidBy        String?
+  paymentMode   String?
+  paymentTime   String?
+  remark        String?
+  cngRate       Decimal?    @db.Decimal(10, 2)
+  quantityKg    Decimal?    @db.Decimal(10, 2)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  vehicle     Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  driver      Driver?      @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  bankAccount BankAccount? @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+
+  @@index([expenseDate])
+  @@index([vehicleId, expenseDate])
+  @@index([driverId, expenseDate])
+  @@index([bankAccountId])
+  @@map("expenses")
 }
 
 model FuelEntry {

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/server/auth/options'
 import prisma from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 export const runtime = 'nodejs'
 
@@ -157,6 +158,7 @@ export async function GET(request: NextRequest, { params }: { params: { resource
         { header: 'Balance', key: 'balance', width: 16 },
         { header: 'Status', key: 'status', width: 16 },
         { header: 'Trip Type', key: 'tripType', width: 20 },
+        { header: 'Narration', key: 'narration', width: 40 },
       ], trips.map((trip) => ({
         tripDate: trip.tripDate,
         vehicleNo: trip.vehicle.vehicleNo,
@@ -175,6 +177,81 @@ export async function GET(request: NextRequest, { params }: { params: { resource
         balance: Number(trip.revenue) - Number(trip.advance) - Number(trip.commissionDeduct),
         status: trip.status,
         tripType: trip.tripType,
+        narration: trip.narration,
+      })))
+    }
+
+    if (params.resource === 'fuel') {
+      const where: Prisma.FuelEntryWhereInput = {}
+      const vehicleId = searchParams.get('vehicleId')
+      const fuelType = searchParams.get('fuelType')
+      const dateFrom = searchParams.get('dateFrom')
+      const dateTo = searchParams.get('dateTo')
+
+      if (vehicleId) where.vehicleId = vehicleId
+      if (
+        fuelType === 'DIESEL' ||
+        fuelType === 'PETROL' ||
+        fuelType === 'CNG' ||
+        fuelType === 'ELECTRIC'
+      ) {
+        where.fuelType = fuelType
+      }
+
+      if (dateFrom || dateTo) {
+        const dateFilter: Prisma.DateTimeFilter = {}
+        if (dateFrom) {
+          const parsed = new Date(dateFrom)
+          if (Number.isNaN(parsed.getTime())) {
+            return NextResponse.json({ error: 'Invalid start date.' }, { status: 400 })
+          }
+          dateFilter.gte = parsed
+        }
+        if (dateTo) {
+          const parsed = new Date(dateTo)
+          if (Number.isNaN(parsed.getTime())) {
+            return NextResponse.json({ error: 'Invalid end date.' }, { status: 400 })
+          }
+          dateFilter.lte = parsed
+        }
+        if (dateFrom && dateTo && dateFilter.gte! > dateFilter.lte!) {
+          return NextResponse.json({ error: 'Start date must be on or before end date.' }, { status: 400 })
+        }
+        where.entryDate = dateFilter
+      }
+
+      const entries = await prisma.fuelEntry.findMany({
+        where,
+        orderBy: { entryDate: 'desc' },
+        include: {
+          vehicle: { select: { vehicleNo: true, makeModel: true } },
+        },
+      })
+
+      return createWorkbook('fuel.xlsx', 'Fuel', [
+        { header: 'Date', key: 'entryDate', width: 18 },
+        { header: 'Vehicle No', key: 'vehicleNo', width: 18 },
+        { header: 'Vehicle Model', key: 'vehicleModel', width: 24 },
+        { header: 'Station', key: 'station', width: 24 },
+        { header: 'Fuel Type', key: 'fuelType', width: 14 },
+        { header: 'Litres', key: 'litres', width: 14 },
+        { header: 'Rate/Litre', key: 'ratePerLitre', width: 16 },
+        { header: 'Total Amount', key: 'totalAmount', width: 18 },
+        { header: 'Odometer', key: 'odometerReading', width: 16 },
+        { header: 'KM Since Last Fill', key: 'kmSinceLastFill', width: 20 },
+        { header: 'Fuel Economy (KM/L)', key: 'fuelEconomy', width: 22 },
+      ], entries.map((entry) => ({
+        entryDate: entry.entryDate,
+        vehicleNo: entry.vehicle.vehicleNo,
+        vehicleModel: entry.vehicle.makeModel,
+        station: entry.station,
+        fuelType: entry.fuelType,
+        litres: Number(entry.litres),
+        ratePerLitre: Number(entry.ratePerLitre),
+        totalAmount: Number(entry.totalAmount),
+        odometerReading: entry.odometerReading,
+        kmSinceLastFill: Number(entry.kmSinceLastFill),
+        fuelEconomy: entry.fuelEconomy === null ? null : Number(entry.fuelEconomy),
       })))
     }
 

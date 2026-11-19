@@ -155,6 +155,7 @@ export function TripTable({ trips, page, total }: TripTableProps) {
               <th className="p-3 text-right font-medium">Advance</th>
               <th className="p-3 text-right font-medium">Commission deduct</th>
               <th className="p-3 text-right font-medium">Balance</th>
+              <th className="p-3 text-left font-medium">Received in</th>
               <th className="p-3 text-left font-medium">Status</th>
 
 
@@ -163,7 +164,7 @@ export function TripTable({ trips, page, total }: TripTableProps) {
           <tbody>
             {trips.length === 0 ? (
               <tr>
-                <td colSpan={16} className="p-6 text-center text-muted-foreground">
+                <td colSpan={17} className="p-6 text-center text-muted-foreground">
                   No trips found
                 </td>
               </tr>
@@ -207,6 +208,11 @@ export function TripTable({ trips, page, total }: TripTableProps) {
                   <td className="p-3 text-right">{formatCurrency(trip.commissionDeduct || 0)}</td>
                   <td className="p-3 text-right">
                     {formatCurrency(trip.revenue - (trip.advance || 0) - (trip.commissionDeduct || 0))}
+                  </td>
+                  <td className="p-3">
+                    {trip.bankAccount
+                      ? `${trip.bankAccount.bankName} - ${trip.bankAccount.accountNumber}`
+                      : '-'}
                   </td>
                   <td className="p-3 text-center">{getStatusBadge(trip.status)}</td>
 
@@ -266,6 +272,12 @@ export function TripTable({ trips, page, total }: TripTableProps) {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <span className="text-muted-foreground">Advance:</span> {formatCurrency(trip.advance || 0)}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Received in:</span>{' '}
+                    {trip.bankAccount
+                      ? `${trip.bankAccount.bankName} - ${trip.bankAccount.accountNumber}`
+                      : '-'}
                   </div>
                   <div>
                     <span className="text-muted-foreground">Commission:</span> {formatCurrency(trip.commissionDeduct || 0)}

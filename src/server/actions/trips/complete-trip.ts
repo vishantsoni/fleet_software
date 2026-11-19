@@ -61,6 +61,7 @@ export async function completeTrip(id: string, endOdometer?: number, endDateTime
       vehicle: true,
       driver: true,
       customer: true,
+      bankAccount: true,
     },
   })
 

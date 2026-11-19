@@ -9,6 +9,7 @@ export async function getTrip(id: string) {
       vehicle: { select: { id: true, vehicleNo: true, makeModel: true } },
       driver: { select: { id: true, fullName: true, licenseNumber: true, phone: true } },
       customer: { select: { id: true, name: true } },
+      bankAccount: { select: { id: true, bankName: true, accountNumber: true } },
     },
   })
 

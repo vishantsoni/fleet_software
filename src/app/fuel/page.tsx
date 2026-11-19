@@ -3,6 +3,7 @@ import { listFuelEntriesAction } from '@/server/actions/fuel'
 import { listVehiclesAction } from '@/server/actions/vehicles'
 import { FuelTable } from './_components/fuel-table'
 import { Button } from '@/components/ui/button'
+import { ExportExcelButton } from '@/components/export-excel-button'
 import Link from 'next/link'
 import { Search, Filter, Calendar, ChevronDown } from 'lucide-react'
 
@@ -47,17 +48,27 @@ export default async function FuelPage({ searchParams }: FuelPageProps) {
   const dateTo = params.dateTo || ''
 
   const vehiclesResult = await listVehiclesAction(1, 100)
+  const exportParams = new URLSearchParams()
+  if (vehicleId) exportParams.set('vehicleId', vehicleId)
+  if (fuelType) exportParams.set('fuelType', fuelType)
+  if (dateFrom) exportParams.set('dateFrom', dateFrom)
+  if (dateTo) exportParams.set('dateTo', dateTo)
+  const exportQuery = exportParams.toString()
+  const exportHref = exportQuery ? `/api/exports/fuel?${exportQuery}` : '/api/exports/fuel'
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Fuel Register</h1>
           <p className="text-muted-foreground">Manage fuel entries for your fleet</p>
         </div>
-        <Button asChild>
-          <Link href="/fuel/new">New Entry</Link>
-        </Button>
+        <div className="flex gap-2">
+          <ExportExcelButton href={exportHref} filename="fuel.xlsx" />
+          <Button asChild>
+            <Link href="/fuel/new">New Entry</Link>
+          </Button>
+        </div>
       </div>
 
       <form className="flex flex-wrap items-center gap-4" method="GET">

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,9 +16,13 @@ import {
   Zap,
   FileCheck,
   BarChart3,
+  Wallet,
+  Landmark,
   LayoutDashboard,
   Menu,
   X,
+  ShieldCheck,
+  UserCog,
 } from 'lucide-react'
 import {
   Sheet,
@@ -26,16 +31,20 @@ import {
 } from '@/components/ui/sheet'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/vehicles', label: 'Vehicles', icon: Car },
-  { href: '/drivers', label: 'Drivers', icon: Users },
-  { href: '/trips', label: 'Trips', icon: ClipboardList },
-  { href: '/fuel', label: 'Fuel', icon: Fuel },
-  { href: '/maintenance', label: 'Maintenance', icon: Wrench },
-  { href: '/tyres', label: 'Tyres', icon: CircleDot },
-  { href: '/batteries', label: 'Batteries', icon: Zap },
-  { href: '/compliance', label: 'Compliance', icon: FileCheck },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'dashboard' },
+  { href: '/vehicles', label: 'Vehicles', icon: Car, permission: 'vehicles' },
+  { href: '/drivers', label: 'Drivers', icon: Users, permission: 'drivers' },
+  { href: '/trips', label: 'Trips', icon: ClipboardList, permission: 'trips' },
+  { href: '/expenses', label: 'Expenses', icon: Wallet, permission: 'expenses' },
+  { href: '/bank-accounts', label: 'Bank Accounts', icon: Landmark, permission: 'bank_accounts' },
+  { href: '/fuel', label: 'Fuel', icon: Fuel, permission: 'fuel' },
+  { href: '/maintenance', label: 'Maintenance', icon: Wrench, permission: 'maintenance' },
+  { href: '/tyres', label: 'Tyres', icon: CircleDot, permission: 'tyres' },
+  { href: '/batteries', label: 'Batteries', icon: Zap, permission: 'batteries' },
+  { href: '/compliance', label: 'Compliance', icon: FileCheck, permission: 'compliance' },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3, permission: 'analytics' },
+  { href: '/roles', label: 'Roles', icon: ShieldCheck, permission: 'roles', adminOnly: true },
+  { href: '/staff', label: 'Staff', icon: UserCog, permission: 'staff', adminOnly: true },
 ]
 
 interface NavListProps {
@@ -45,10 +54,14 @@ interface NavListProps {
 
 export function NavList({ className, onItemClick }: NavListProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
 
   return (
     <nav className={cn('flex flex-col space-y-1', className)}>
       {navItems.map((item) => {
+        if ('adminOnly' in item && item.adminOnly && session?.user?.role !== 'ADMIN') return null
+        const permissions = session?.user?.permissions || []
+        if (session?.user?.role !== 'ADMIN' && !permissions.includes('*') && !permissions.includes(item.permission)) return null
         const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
         return (
           <Link key={item.href} href={item.href} onClick={onItemClick}>

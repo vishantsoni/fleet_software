@@ -27,12 +27,10 @@ export default function CompliancePage() {
   )
 }
 
+import { getExpiryAlerts } from '@/server/actions/compliance'
+
 async function ComplianceContent() {
-  const res = await fetch(`${process.env.NEXTAUTH_URL}/api/compliance/alerts`, {
-    cache: 'no-store',
-  })
-  const data = await res.json()
-  const alerts = data.alerts || []
+  const alerts = await getExpiryAlerts()
 
   return (
     <div className="space-y-6">

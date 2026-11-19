@@ -157,6 +157,13 @@ export function TripDetails({ trip }: TripDetailsProps) {
       </Card>
 
       <Card>
+        <CardHeader><CardTitle>Narration</CardTitle></CardHeader>
+        <CardContent>
+          <p className="whitespace-pre-wrap text-sm">{trip.narration || 'No narration for this trip.'}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader><CardTitle>Financial details</CardTitle></CardHeader>
         <CardContent>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -165,6 +172,12 @@ export function TripDetails({ trip }: TripDetailsProps) {
             <DetailField label="Advance" value={formatCurrency(trip.advance)} />
             <DetailField label="Commission deduct" value={formatCurrency(trip.commissionDeduct)} />
             <DetailField label="Balance" value={formatCurrency(balance)} />
+            <DetailField
+              label="Payment received in"
+              value={trip.bankAccount
+                ? `${trip.bankAccount.bankName} - ${trip.bankAccount.accountNumber}`
+                : '-'}
+            />
           </div>
         </CardContent>
       </Card>

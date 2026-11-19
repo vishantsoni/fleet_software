@@ -6,7 +6,10 @@ Advanced Transport Fleet Management System built with Next.js 14, TypeScript, Pr
 
 - Vehicle Master management
 - Trip & Revenue Register
+- Trip narration and payment account tracking
+- Expense Register and reusable bank accounts
 - Diesel / Fuel Register with auto-calculated KM/L
+- Fuel register Excel export
 - Maintenance & Repair Register
 - Tyre Management with cost-per-KM tracking
 - Driver & Payroll Input
@@ -27,11 +30,16 @@ Advanced Transport Fleet Management System built with Next.js 14, TypeScript, Pr
 2. Install dependencies: `npm install`
 3. Set up environment variables: Copy `.env.example` to `.env.local` and configure
 4. Start PostgreSQL and Redis: `docker-compose up -d`
-5. Run database migrations: `npm run db:generate`
+5. Apply the Prisma schema to the database: `npm run db:push`
 6. Seed the database: `npm run db:seed`
 7. Start the development server: `npm run dev`
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+Bank accounts can be managed from **Bank Accounts** and selected on trips (payment received) and expenses (payment made). Expenses support vehicle, driver, payment details, remarks, and optional CNG rate and quantity.
+
+After deploying a schema change, run `npm run db:push` against the deployment database before using the updated application.
+For Docker Compose deployments, run `docker compose exec app npx prisma db push` after starting the new app container.
 
 ## Default Login
 

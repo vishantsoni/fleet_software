@@ -4,6 +4,7 @@ export interface Trip {
   tripDate: Date
   vehicleId: string
   driverId: string
+  bankAccountId?: string | null
   customerId?: string | null
   partyName?: string | null
   podStatus: 'PENDING' | 'SENT' | 'RECEIVED'
@@ -16,6 +17,7 @@ export interface Trip {
   advance: number
   commissionDeduct: number
   status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  narration?: string | null
   notes?: string | null
   createdById?: string | null
   createdAt: Date
@@ -37,6 +39,7 @@ export interface CreateTripInput {
   tripDate: Date
   vehicleId: string
   driverId: string
+  bankAccountId?: string | null
   customerId?: string
   partyName?: string
   podStatus?: 'PENDING' | 'SENT' | 'RECEIVED'
@@ -46,6 +49,7 @@ export interface CreateTripInput {
   totalKm: number
   freightAmount?: number
   revenue?: number
+  narration?: string | null
   // Package fields
   rentalDays?: number
   includedKm?: number
@@ -78,4 +82,9 @@ export interface TripWithRelations extends Trip {
     id: string
     name: string
   }
+  bankAccount?: {
+    id: string
+    bankName: string
+    accountNumber: string
+  } | null
 }

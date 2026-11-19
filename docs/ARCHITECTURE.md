@@ -208,6 +208,8 @@ fleet_software/
 
 ### 2. Trip & Revenue Register (`src/app/trips/`)
 - **Form**: Vehicle selection (pre-filtered by active vehicles), driver selection, origin/destination autocomplete
+- **Payments**: Optional receiving bank account linked to the shared bank-account register
+- **Narration**: Free-text narration saved with each trip
 - **Workflow**: Scheduled → In Progress → Completed (status transition)
 - **Validation**: Odometer progression checked against FuelEntry / MaintenanceJob
 - **Trip Details**: Party name, docket number, and POD tracking (Pending, Sent, Received)
@@ -217,22 +219,27 @@ fleet_software/
   - `kmSinceLastFill` = currentOdometerReading - previousFuelEntryOdometerReading
   - `fuelEconomy` = kmSinceLastFill / litres
 - **Validation**: Odometer must be strictly increasing
+- **Export**: Excel export supports the selected vehicle, fuel type, and date filters
 
 ### 4. Maintenance & Repair Register (`src/app/maintenance/`)
 - **Form**: Workshop dropdown, parts + labour split
 - **Cost Rollup**: Auto-calculates totalCost
 
-### 5. Tyre Management (`src/app/tyres/`)
+### 5. Expense & Bank Account Registers (`src/app/expenses/`, `src/app/bank-accounts/`)
+- **Expenses**: Date, vehicle, driver, description, amount, payer, payment mode/time, remarks, and optional CNG rate/quantity
+- **Bank accounts**: Reusable bank name and account number selection for trips and expenses; referenced accounts can be deactivated without losing history
+
+### 6. Tyre Management (`src/app/tyres/`)
 - **Lifecycle**: Fitted → Removed → Scrapped
 - **Auto-calculation**: costPerKm = purchaseCost / (removalOdometer - fittedOdometer)
 - **Validation**: Removal odometer must be > fitted odometer
 
-### 6. Driver & Payroll (`src/app/drivers/`)
+### 7. Driver & Payroll (`src/app/drivers/`)
 - **Master**: License tracking with expiry alerts
 - **Documents**: Upload and expiry tracking
 - **Payroll**: Advances and deductions (to be modeled as separate tables if needed for audit trail)
 
-### 7. Compliance & Expiry Tracker (`src/app/compliance/`)
+### 8. Compliance & Expiry Tracker (`src/app/compliance/`)
 - **Unified View**: Documents from both vehicles and drivers in one dashboard
 - **Alert System**:
   - Green: > 30 days
@@ -240,7 +247,7 @@ fleet_software/
   - Red: Expired
 - **BullMQ Job**: Daily recalculation of daysToExpiry and alertStatus
 
-### 8. P&L & Analytics Engine (`src/app/analytics/`)
+### 9. P&L & Analytics Engine (`src/app/analytics/`)
 - **P&L per Vehicle**: Revenue - (Fuel + Maintenance + Tyres + Overheads)
 - **Fleet-wide Aggregation**: Sum across all vehicles
 - **Metrics**:

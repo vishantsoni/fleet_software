@@ -51,6 +51,7 @@ export const TripSchema = z.object({
     .refine(isNotInFuture, { message: 'Trip date cannot be in the future' }),
   vehicleId: z.string(),
   driverId: z.string(),
+  bankAccountId: z.string().optional().nullable(),
   customerId: z.string().optional().nullable(),
   partyName: z.string().trim().max(200).optional().nullable(),
   podStatus: z.enum(['PENDING', 'SENT', 'RECEIVED']).default('PENDING'),
@@ -62,6 +63,7 @@ export const TripSchema = z.object({
   revenue: z.number().nonnegative().default(0),
   advance: z.number().nonnegative().multipleOf(0.01).default(0),
   commissionDeduct: z.number().nonnegative().multipleOf(0.01).default(0),
+  narration: z.string().trim().max(1000).optional().nullable(),
   // Package fields
   rentalDays: z.number().int().nonnegative().optional().nullable(),
   includedKm: z.number().nonnegative().multipleOf(0.01).optional().nullable(),
@@ -76,6 +78,31 @@ export const TripSchema = z.object({
 
 export const CreateTripSchema = TripSchema
 export const UpdateTripSchema = TripSchema.partial()
+
+export const BankAccountSchema = z.object({
+  bankName: z.string().trim().min(1).max(100),
+  accountNumber: z.string().trim().min(1).max(50),
+})
+
+const optionalPositiveAmount = z.preprocess(
+  (value) => value === '' || value === undefined || value === null ? null : Number(value),
+  z.number().positive().nullable()
+)
+
+export const ExpenseSchema = z.object({
+  expenseDate: z.coerce.date().refine(isNotInFuture, { message: 'Expense date cannot be in the future' }),
+  vehicleId: z.string().optional().nullable(),
+  driverId: z.string().optional().nullable(),
+  description: z.string().trim().min(1).max(200),
+  amount: z.number().positive().multipleOf(0.01),
+  bankAccountId: z.string().optional().nullable(),
+  paidBy: z.string().trim().max(100).optional().nullable(),
+  paymentMode: z.string().trim().max(50).optional().nullable(),
+  paymentTime: z.string().max(20).optional().nullable(),
+  remark: z.string().trim().max(500).optional().nullable(),
+  cngRate: optionalPositiveAmount,
+  quantityKg: optionalPositiveAmount,
+})
 
 export const FuelEntrySchema = z.object({
   entryDate: z.coerce

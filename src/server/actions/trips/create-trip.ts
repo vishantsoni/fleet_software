@@ -34,6 +34,7 @@ export async function createTrip(input: z.infer<typeof CreateTripSchema>) {
         vehicle: true,
         driver: true,
         customer: true,
+        bankAccount: true,
       },
     })
 
@@ -60,6 +61,7 @@ export async function updateTrip(id: string, input: z.infer<typeof UpdateTripSch
         vehicle: true,
         driver: true,
         customer: true,
+        bankAccount: true,
       },
     })
 
@@ -108,6 +110,7 @@ export async function updateTripStatus(
         vehicle: true,
         driver: true,
         customer: true,
+        bankAccount: true,
       },
     })
 
@@ -157,6 +160,7 @@ export async function listTrips(filters: {
           vehicle: true,
           driver: true,
           customer: true,
+          bankAccount: true,
         },
       }),
       prisma.trip.count({ where }),
@@ -186,6 +190,7 @@ export async function getTrip(id: string) {
         vehicle: true,
         driver: true,
         customer: true,
+        bankAccount: true,
         createdBy: true,
       },
     })
