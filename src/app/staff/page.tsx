@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { listRolesAction, listStaffAction, saveStaffAction, setStaffActiveAction } from '@/server/actions/staff'
-import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/toast'
+import { Button } from '@/components/ui/button'
 
 type UserRole = 'ADMIN' | 'MANAGER' | 'DRIVER' | 'ACCOUNTANT' | 'OPERATIONS'
 
@@ -24,7 +25,8 @@ export default function StaffPage() {
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>('OPERATIONS')
   const [roleId, setRoleId] = useState('')
-  const [isActive, setIsActive] = useState(true)
+  const [baseSalary, setBaseSalary] = useState('0')
+const [isActive, setIsActive] = useState(true)
 
   async function load() {
     const [staffResult, rolesResult] = await Promise.all([listStaffAction(), listRolesAction()])
@@ -42,6 +44,7 @@ export default function StaffPage() {
     setRole(user?.role || 'OPERATIONS')
     setRoleId(user?.roleId || '')
     setIsActive(user?.isActive ?? true)
+    setBaseSalary(String(user?.baseSalary ?? 0))
   }
 
   async function save() {
@@ -53,6 +56,7 @@ export default function StaffPage() {
       role,
       roleId: roleId || undefined,
       isActive,
+      baseSalary: Number(baseSalary) || 0,
     })
     if (!result.success) {
       toast({ title: 'Error', description: result.error, variant: 'destructive' })
@@ -88,7 +92,7 @@ export default function StaffPage() {
           <CardHeader><CardTitle>{editing ? 'Edit Staff' : 'New Staff'}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2"><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+            <div className="space-y-2"><Label>Base Salary</Label><Input type="number" value={baseSalary} onChange={(e) => setBaseSalary(e.target.value)} /></div>
             <div className="space-y-2">
               <Label>{editing ? 'New password (optional)' : 'Password'}</Label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -139,6 +143,9 @@ export default function StaffPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/staff/${user.id}/salary`}>Salary</Link>
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => edit(user)}>Edit</Button>
                   <Button variant="outline" size="sm" onClick={() => toggleActive(user)}>
                     {user.isActive ? 'Deactivate' : 'Activate'}

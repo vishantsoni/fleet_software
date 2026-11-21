@@ -181,6 +181,41 @@ export async function GET(request: NextRequest, { params }: { params: { resource
       })))
     }
 
+if (params.resource === 'expenses') {
+      const expenses = await prisma.expense.findMany({
+        orderBy: { expenseDate: 'desc' },
+        include: {
+          vehicle: { select: { vehicleNo: true } },
+          driver: { select: { fullName: true } },
+          bankAccount: { select: { bankName: true, accountNumber: true } },
+        },
+      })
+
+      return createWorkbook('expenses.xlsx', 'Expenses', [
+        { header: 'Date', key: 'expenseDate', width: 18 },
+        { header: 'Description', key: 'description', width: 30 },
+        { header: 'Amount', key: 'amount', width: 16 },
+        { header: 'Vehicle No', key: 'vehicleNo', width: 18 },
+        { header: 'Driver', key: 'driver', width: 24 },
+        { header: 'Paid By', key: 'paidBy', width: 18 },
+        { header: 'Payment Mode', key: 'paymentMode', width: 16 },
+        { header: 'Payment Time', key: 'paymentTime', width: 16 },
+        { header: 'Bank Account', key: 'bankAccount', width: 24 },
+        { header: 'Remark', key: 'remark', width: 30 },
+      ], expenses.map((expense) => ({
+        expenseDate: expense.expenseDate,
+        description: expense.description,
+        amount: Number(expense.amount),
+        vehicleNo: expense.vehicle?.vehicleNo ?? '',
+        driver: expense.driver?.fullName ?? '',
+        paidBy: expense.paidBy,
+        paymentMode: expense.paymentMode,
+        paymentTime: expense.paymentTime,
+        bankAccount: expense.bankAccount ? `${expense.bankAccount.bankName} - ${expense.bankAccount.accountNumber}` : '',
+        remark: expense.remark,
+      })))
+    }
+
     if (params.resource === 'fuel') {
       const where: Prisma.FuelEntryWhereInput = {}
       const vehicleId = searchParams.get('vehicleId')

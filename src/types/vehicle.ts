@@ -26,6 +26,7 @@ export const updateVehicleSchema = createVehicleSchema.extend({
   id: z.string().min(1, 'ID is required'),
 })
 
+export type CreateVehicleInput = z.infer<typeof createVehicleSchema>
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>
 
 export type Vehicle = {

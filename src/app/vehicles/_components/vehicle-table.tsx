@@ -21,7 +21,7 @@ import {
   getSortedRowModel,
   SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpDown, ChevronLeft, ChevronRight, Eye, Pencil, Trash2 } from 'lucide-react'
 
 type Vehicle = {
   id: string
@@ -123,9 +123,16 @@ export function VehicleTable({ data, page, total }: VehicleTableProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => router.push(`/vehicles/${vehicle.id}`)}
+              onClick={() => router.push(`/vehicles/${vehicle.id}/edit`)}
             >
               <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/vehicles/${vehicle.id}`)}
+            >
+              <Eye className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -243,11 +250,20 @@ export function VehicleTable({ data, page, total }: VehicleTableProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/vehicles/${vehicle.id}`)}
+                  onClick={() => router.push(`/vehicles/${vehicle.id}/edit`)}
                   className="flex-1"
                 >
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/vehicles/${vehicle.id}`)}
+                  className="flex-1"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
                 </Button>
                 <Button
                   variant="outline"

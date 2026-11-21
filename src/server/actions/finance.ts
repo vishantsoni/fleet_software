@@ -82,3 +82,31 @@ export async function createExpenseAction(input: unknown) {
     return { success: false, error: 'Could not save the expense.' }
   }
 }
+
+export async function getExpenseAction(id: string) {
+  try {
+    const expense = await prisma.expense.findUnique({ where: { id } })
+    if (!expense) return { success: false, error: 'Expense not found.' }
+    return { success: true, data: { ...expense, amount: Number(expense.amount), cngRate: expense.cngRate === null ? null : Number(expense.cngRate), quantityKg: expense.quantityKg === null ? null : Number(expense.quantityKg) } }
+  } catch (error) {
+    console.error('Failed to fetch expense', error)
+    return { success: false, error: 'Could not load expense.' }
+  }
+}
+
+export async function updateExpenseAction(id: string, input: unknown) {
+  const validation = ExpenseSchema.safeParse(input)
+  if (!validation.success) {
+    return { success: false, error: validation.error.issues[0]?.message || 'Invalid expense details.' }
+  }
+
+  try {
+    await prisma.expense.update({ where: { id }, data: validation.data })
+    revalidatePath('/expenses')
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to update expense', error)
+    return { success: false, error: 'Could not update the expense.' }
+  }
+}

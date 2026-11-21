@@ -557,6 +557,7 @@ export function DriverSalaryManager({ driverId, driverName, baseSalary }: Driver
                       <td className="p-2 text-right">{money(payment.expenseReimbursed)}</td>
                       <td className="p-2 text-right">{money(payment.netSalary)}</td>
                       <td className="p-2 text-right">{formatDate(payment.paidAt)}</td>
+                      <td className="p-2 text-right"><a href={`/api/drivers/${driverId}/salary/pdf?month=${payment.salaryYear}-${String(payment.salaryMonth).padStart(2,'0')}`} target="_blank" rel="noreferrer">Print</a></td>
                     </tr>
                   ))}
                 </tbody>

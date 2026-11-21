@@ -72,6 +72,7 @@ export async function saveStaffAction(input: {
   role: 'ADMIN' | 'MANAGER' | 'DRIVER' | 'ACCOUNTANT' | 'OPERATIONS'
   roleId?: string
   isActive: boolean
+  baseSalary?: number
 }) {
   if (!(await requireAdmin())) return { success: false, error: 'Admin access required' }
   const name = input.name.trim()
@@ -88,8 +89,9 @@ export async function saveStaffAction(input: {
       name,
       email,
       role: input.role,
-      roleId: input.roleId || null,
-      isActive: input.isActive,
+       roleId: input.roleId || null,
+       isActive: input.isActive,
+       baseSalary: input.baseSalary ?? 0,
     }
     if (input.password?.trim()) data.passwordHash = await bcryptjs.hash(input.password.trim(), 10)
     await prisma.user.update({ where: { id: input.id }, data })
