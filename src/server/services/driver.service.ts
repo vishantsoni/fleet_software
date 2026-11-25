@@ -7,10 +7,15 @@ export class DriverService {
   static async create(input: { fullName: string }) {
     const validated = CreateDriverSchema.parse(input)
 
+    const licenseNumber = validated.licenseNumber.toUpperCase()
+    const existing = await prisma.driver.findUnique({ where: { licenseNumber } })
+    if (existing) {
+      return { ...existing, baseSalary: Number(existing.baseSalary) }
+    }
     const driver = await prisma.driver.create({
       data: {
         ...validated,
-        licenseNumber: validated.licenseNumber.toUpperCase(),
+        licenseNumber,
         baseSalary: new Decimal(validated.baseSalary),
       },
     })

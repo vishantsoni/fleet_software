@@ -238,8 +238,9 @@ model StaffAttendance {
 }
 model Driver {
   id            String    @id @default(cuid())
-  fullName      String
-  licenseExpiry DateTime
+  fullName       String
+  licenseNumber  String  @unique
+  licenseExpiry  DateTime
   phone         String?
   address       String?
   baseSalary    Decimal   @default(0) @db.Decimal(10, 2)
