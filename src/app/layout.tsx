@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toast'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
+export const dynamic = 'force-dynamic': Metadata = {
   title: 'Fleet Management System',
   description: 'Advanced Transport Fleet Management System',
   manifest: '/manifest.json',
