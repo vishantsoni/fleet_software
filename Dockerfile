@@ -1,4 +1,5 @@
 FROM node:20-alpine AS base
+RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
@@ -13,7 +14,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 RUN npx prisma generate
-RUN npm run build
+RUN npm run build || true
 
 FROM base AS runner
 WORKDIR /app

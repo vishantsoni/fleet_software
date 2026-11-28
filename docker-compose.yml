@@ -1,45 +1,15 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgis/postgis:15-3.3
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fleet_db
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    restart: always
-    ports:
-      - '6379:6379'
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   app:
     build: .
-    ports:
-      - '3000:3000'
+    container_name: fleet_app
+    restart: always
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet_db?schema=public
       REDIS_URL: redis://redis:6379
-      NEXTAUTH_SECRET: your-super-secret-key-here
-      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: https://fleet.gtsol.in
+      NODE_ENV: production
+      PORT: '3000'
       DOCUMENT_UPLOAD_DIR: /app/uploads
     depends_on:
       postgres:
@@ -48,7 +18,72 @@ services:
         condition: service_healthy
     volumes:
       - vehicle_documents:/app/uploads
-    command: node server.js
+    networks:
+      - fleet
+      - traefik-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fleet-app.rule=Host(`fleet.gtsol.in`)"
+      - "traefik.http.routers.fleet-app.entrypoints=websecure"
+      - "traefik.http.routers.fleet-app.tls=true"
+      - "traefik.http.routers.fleet-app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.fleet-app.loadbalancer.server.port=3000"
+
+  worker:
+    build: .
+    container_name: fleet_worker
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet_db?schema=public
+      REDIS_URL: redis://redis:6379
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fleet
+    command: npm run jobs:start
+
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: fleet_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fleet_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fleet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fleet_redis
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - fleet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  fleet:
+    driver: bridge
+  traefik-proxy:
+    external: true
 
 volumes:
   postgres_data:

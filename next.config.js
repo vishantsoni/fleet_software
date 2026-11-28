@@ -89,6 +89,7 @@ const nextConfig = {
     }
   },
   reactStrictMode: true,
+  output: 'standalone',
   // TODO: ~27 pre-existing type errors remain (see `npx tsc --noEmit`)
   typescript: { ignoreBuildErrors: true },
 }
